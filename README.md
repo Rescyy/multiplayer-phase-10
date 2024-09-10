@@ -78,7 +78,7 @@ Plans for future (Not going to implement for this laboratory work)
             "password": "userPassword",
         }
         ```
-- __Response 200 OK:__ `{ "auth-token": <auth-token> }`
+- __Response 200 OK:__ `{ "token": <token> }`
 - __Response 401 Unauthorized__
 
 #### Logout Player
