@@ -3,31 +3,38 @@
 ## Application Suitability
 
 - Microservices architecture is perfect for multiplayer games which require fast response times and managing of databases. 
-- Multiplayer game backends usually consist of the game logic, player and games databases. We can assign a microservice with one or multiple instances to each of the components. 
+- Multiplayer game backends usually consist of the game logic, player and games databases. We can assign a microservice with one or multiple instances to each of the components.
 - Instead of creating a monolithic application that would be hard to maintain, hard to scale, and prone to crashing, microservices allow us to build up on smaller, more digestible code bases. Division of code, allows the whole application to not break from a single crash in one of the services.
 - Microservices are scalable, they allow for multiple instances which can sustain multiple client connections.
 
 ## Service Boundaries
 
 __1.__ API Gateway - Entry point to the system, handle client connections, redirect to other services if necessary.
+
 __2.__ Game Service - Focuses on game session, player connection maintainance, game logic, verification of player moves, real-time updates for multiplayer environments.
+
 __3.__ Player Account Service - Handle player account authentication, store player data such as games, scores, friends.
 
 ![alt text](images/PAD%20architecture.jpg "Title")
 
-Plans for future
+Plans for future (Not going to implement for this laboratory work)
 - AI Player Service
 - Game Session DB, to continue games later
 - Chat Support
 - Public/Private Game Creation
-- Friend system
+- Friend System
+- View Player Status
+- Implement refresh token
+- Encrypt player information
+- HTTPS, WSS
 
 ## Technology Stack
 
-- Api Gateway - JavaScript/NestJS framework.
-Suitable for making gateways, an easy choice
-- Game Service - Rust.
-Chosen for personal preference and challenge, it is a modern language with runtime safety stamped on its forehead. It has its own asynchronous runtime that does not depend on system threads and which is faster.(Might regret later due to the difficulty)
+- Api Gateway - NestJS framework
+- Service Discovery - NestJS framework
+- Game Service - Rust
+
+    Chosen for personal preference and challenge, it is a modern language with runtime safety stamped on its forehead. It has its own asynchronous runtime package that does not depend on system threads and which is faster.(Might regret later due to the difficulty)
 - Game DB - PostgreSQL
 - Player Account Service - Python
 - Player Account DB - PostgreSQL
@@ -35,113 +42,209 @@ Chosen for personal preference and challenge, it is a modern language with runti
 
 ## Communication Patterns
 
-- RESTful paradigm
-- Communication between services - gRPC
-- Communication with client - HTTP
+- Communication with client and between services - Websocket, HTTP
+- Communication with Redis - TCP
+- Communication with Service Discovery - gRPC
 
 ## Data Managemenet
 
-### > API Gateway
+### Player User Service
 
-#### Get redirect information to a game session
+#### Register Player account
 
-Receive redirect information and credentials to an available game session
+- __API:__ `POST /register`
+- __Payload:__ 
+        ```
+        {
+            "username": "userUsername",
+            "password": "userPassword",
+        }
+        ```
+- __Response 200 OK__
+- __Response 409 Conflict:__ 
+        ```
+        {
+            "reason": "Username already exists"
+        }
+        ```
 
-- __URL:__ `/gamesession`
-- __Method:__ `GET`
-- __Success Response:__
-    - __Code:__ 200
-__Content:__ 
-```
-{
-    "status": "Ok",
-    "payload": {
-        "URL": "http://localhost:1234/abcdef12341234-A1B2/",
-        "code": A1B2,
-    }
-}
-```
-- __Error Response:__
-    - __Code:__ 503
-__Content:__
-```
-{
-    "status": "Err", 
-    "payload": {
-        "reason": "Server cannot support another game session",
-    }
-}
-```
+#### Login Player
 
-#### Get redirect information to a game session with a certain code
+- __API:__ `POST /login`
+- __Payload:__
+        ```
+        {
+            "username": "userUsername",
+            "password": "userPassword",
+        }
+        ```
+- __Response 200 OK:__ `{ "auth-token": <auth-token> }`
+- __Response 401 Unauthorized__
 
-Receive redirect information and credentials to the game session associated with a code
+#### Logout Player
+- __API:__ `GET /logout`
+- __Headers:__ `Authorization: Bearer <token>`
+- __Response 200 OK__
+- __Response 401 Unauthorized__
 
-- __URL:__ `/gamesession/{code}`
-- __Method:__ `GET`
-- __URL Params:__ `code = <string>`
-- __Success Response:__
-    - __Code:__ 200
-    - __Content:__ 
-```
-{
-    "status": "OK",
-    "payload": {
-        "URL": "http://localhost:1234/abcdef12341234-<code>/"
-    }
-}
-```
-- __Error Response:__
-    - __Code:__ 503
-__Content:__
-```
-{
-    "status": "Err", 
-    "payload": {
-        "reason": "Game session has maximum amount of players",
-    }
-}
-```
+#### Authorize/Identify Player
+- __API:__ `POST /authorization`
+- __Headers:__ `Authorization: Bearer <token>`
+- __Response 200 OK__
+        ```
+        {
+            "id": "userId"
+        }
+        ```
+- __Response 401 Unauthorized__
 
 #### Get player information
 
 Get information about the player/players, account information.
 
-- __URL:__ `/player/{id}`
-- __Method:__ `GET`
-- __URL Params:__ `id = optional <string>`
-- __Query Params:__ `sortby='id'|'creation-time'|'games-won'|'games-won-percent'|'games-played'`
-- __Success Response:__
-    - __Code:__ 200
-    - __Content:__ 
+- __API:__ `GET /players/{id}`
+- __URL Params:__ `optional id = <string>`
+- __Query Params:__ 
 ```
-with id
-{
-    "status": "OK",
-    "payload": {
-        "name": "Rescyy",
+optional sortby = default 'id' | 'creation-time' | 'games-won' | 'games-won-ratio' | 'games-played'
+optional offset = default 0 | <int>
+optional size = default MAX | <int>
+```
+- __Response 200 OK__
+    - Case: With path parameter `id`
+    ```
+    Player JSON Object:
+    {
+        "id": "user-id"
+        "name": "userUsername",
         "creation-time": "2024-09-08T17:53:32Z",
         "games-played": 69,
         "games-won": 420
     }
-}
-no id
-{
-    "status": "OK",
-    "payload": {
-        "players": [<players>]
+
+    ```
+    - Case: With no path parameter `id`
+    ```
+    {
+        "players": [<Player JSON Object>]
     }
+    ```
+- __Response 404 Not Found__
+
+### Game Service
+
+#### Get information of an available game session
+
+Receive code to an empty available game session
+
+- __URL:__ `GET /gamesession`
+- __Response 200 OK:__
+        ```
+        {
+            "code": <code>
+        }
+        ```
+- __Response 503 Service Unavailable__
+    
+    Error reasons might be because a maximum limit of game sessions have been reached.
+
+#### Connect to a game session lobby:
+
+##### as an Authorized Player
+
+- __API:__ `GET /gamesession/authorized/{code}`
+- __URL Params:__ `code = <string>`
+- __Headers:__ 
+```
+Authorization: Bearer <token>
+Upgrade: websocket
+Connetion: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+```
+- __URL Params:__ `code = <string>`
+- __Response 101 Switching Protocols__
+```
+// Headers // 
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+- __Response 401 Unauthorized__
+- __Response 400 Bad Request__ - The user did not send Upgrade headers.
+
+##### as a Guest Player
+
+- __API:__ `GET /gamesession/guest/{code}`
+- __URL Params:__ `code = <string>`
+- __Headers:__ 
+```
+Upgrade: websocket
+Connetion: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+```
+- __URL Params:__ `code = <string>`
+- __Payload:__ `{"guest-username": "guestUsername"}`
+- __Response 101 Switching Protocols__
+```
+// Headers //
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+- __Response 400 Bad Request__ - The user did not send Upgrade headers.
+
+The websocket path will be the same as the one with which the user requested a websocket connection.
+
+### Game Service - Websocket
+
+#### Both Client and Service
+
+- Ok Response: `{ "response": "OK" }`
+- Error Response: `{ "response": "ERR" }`
+
+#### To Service
+
+- Send Player State: 
+```
+{ 
+    "player-action": "Set Player State",
+    "state": <player-state>,
 }
 ```
-- __Error Response:__
-    - __Code:__ 404
-__Content:__
+
+```<player-state> = "ready" | "not ready" | "pending"```
+
+All players will be required to send this command to start the game.
+- Make move: 
 ```
 {
-    "status": "Err", 
-    "reason": "Invalid Id provided"
+    "player-action": "Move", 
+    "move-type": <move-type>, 
+    "args": {<move-type-args>},
 }
 ```
 
-### > Game Service
+#### From Service
 
+- Send Game State
+```
+{
+    "game-action": "Game State",
+    "state": <game-state>,
+}
+```
+
+```<game-state> = "lobby" | "starting" | "ongoing" | "ending"```
+
+- Send Game Update
+```
+{
+    "game-action": "Game Update",
+    "update-type": <update-type>,
+    "args": {<update-type-args>},
+}
+```
+
+```<update-type = "start-phase" | "end-phase" | "player-moved"```
