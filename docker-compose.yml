@@ -1,0 +1,40 @@
+name: multiplayer-phase-10
+
+services:
+  player-db:
+    image: postgres:latest
+    restart: no
+    ports:
+      - "5432:5432"
+    volumes:
+      - player-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${PLAYER_DB_NAME}
+      POSTGRES_USER: ${PLAYER_DB_USER}
+      POSTGRES_PASSWORD: ${PLAYER_DB_PASSWORD}
+
+  game-db:
+    image: postgres:latest
+    restart: no
+    ports:
+      - "5433:5432"
+    volumes:
+      - game-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${GAME_DB_USER}
+      POSTGRES_PASSWORD: ${GAME_DB_PASSWORD}
+      POSTGRES_DB: ${GAME_DB_NAME}
+
+  shared-cache:
+    image: redis:latest
+    restart: no
+    ports:
+      - "6379:6379"
+    volumes:
+      - shared-cache-data:/data
+
+
+volumes:
+  player-db-data:
+  game-db-data:
+  shared-cache-data:
