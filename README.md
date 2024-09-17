@@ -39,6 +39,7 @@ Plans for future (Not going to implement for this laboratory work)
 - Player Account Service - Python
 - Player Account DB - PostgreSQL
 - Shared Cache - Redis
+- Deployment - Docker
 
 ## Communication Patterns
 
@@ -47,6 +48,18 @@ Plans for future (Not going to implement for this laboratory work)
 - Communication with Service Discovery - gRPC
 
 ## Data Managemenet
+
+#### Task Timeout
+All requests will be timed, after at least 5 seconds (to be determined), the request will be cancelled.
+
+#### Status Ping Endpoint
+
+- __API:__ `GET /ping`
+- __Response 200 OK__
+
+The ping will be retried 5 times. If it fails five times, the service will be dropped and another one will attempt to start.
+
+Services can only be accessed by other services. The only accessible service to the client is the API Gateway. The status endpoint of the API gateway can be accessed by the client. The services will be periodically pinged by the Service Discovery.
 
 ### Player User Service
 
@@ -91,6 +104,7 @@ Plans for future (Not going to implement for this laboratory work)
 - __API:__ `POST /authorization`
 - __Headers:__ `Authorization: Bearer <token>`
 - __Response 200 OK__
+- __Caching:__ `True`
         ```
         {
             "id": "userId"
@@ -105,6 +119,7 @@ Get information about the player/players, account information.
 - __API:__ `GET /players/{id}`
 - __URL Params:__ `optional id = <string>`
 - __Query Params:__ 
+- __Caching:__ `True`
 ```
 optional sortby = default 'id' | 'creation-time' | 'games-won' | 'games-won-ratio' | 'games-played'
 optional offset = default 0 | <int>
@@ -248,3 +263,5 @@ All players will be required to send this command to start the game.
 ```
 
 ```<update-type = "start-phase" | "end-phase" | "player-moved"```
+
+## Task Requirements
