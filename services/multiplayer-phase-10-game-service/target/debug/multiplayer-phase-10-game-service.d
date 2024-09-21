@@ -1,1 +1,0 @@
-/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/multiplayer-phase-10-game-service: /Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/src/main.rs
