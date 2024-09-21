@@ -1,0 +1,9 @@
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/libconvert_case-d4f9b79eebdec9b8.rmeta: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/case.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/words.rs
+
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/libconvert_case-d4f9b79eebdec9b8.rlib: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/case.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/words.rs
+
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/convert_case-d4f9b79eebdec9b8.d: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/case.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/words.rs
+
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/lib.rs:
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/case.rs:
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/convert_case-0.4.0/src/words.rs:

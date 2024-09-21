@@ -32,6 +32,17 @@ services:
       - "6379:6379"
     volumes:
       - shared-cache-data:/data
+  
+  gateway:
+    build: ./services/multiplayer-phase-10-gateway
+    ports:
+      - "3000:3000"
+    command: npm run start:dev
+
+  game-service:
+    build: ./services/multiplayer-phase-10-game-service
+    ports:
+      - "3030:3030"
 
 
 volumes:

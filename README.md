@@ -39,7 +39,7 @@ Plans for future (Not going to implement for this laboratory work)
 - Player Account Service - Python
 - Player Account DB - PostgreSQL
 - Shared Cache - Redis
-- Deployment - Docker
+- Deployment - Docker Compose
 
 ## Communication Patterns
 

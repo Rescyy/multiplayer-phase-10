@@ -1,0 +1,10 @@
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/libautocfg-93a6731a7b1b4c33.rmeta: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/error.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/rustc.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/version.rs
+
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/libautocfg-93a6731a7b1b4c33.rlib: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/error.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/rustc.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/version.rs
+
+/Users/crucerescuvladislav/Uni/PAD/multiplayer-phase-10/services/multiplayer-phase-10-game-service/target/debug/deps/autocfg-93a6731a7b1b4c33.d: /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/lib.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/error.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/rustc.rs /Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/version.rs
+
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/lib.rs:
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/error.rs:
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/rustc.rs:
+/Users/crucerescuvladislav/.cargo/registry/src/index.crates.io-6f17d22bba15001f/autocfg-1.3.0/src/version.rs:
