@@ -4,6 +4,11 @@ services:
   player-db:
     image: postgres:latest
     restart: no
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PLAYER_DB_USER} -d ${PLAYER_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
@@ -16,6 +21,11 @@ services:
   game-db:
     image: postgres:latest
     restart: no
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GAME_DB_USER} -d ${GAME_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5433:5432"
     volumes:
@@ -35,6 +45,9 @@ services:
   
   gateway:
     build: ./services/multiplayer-phase-10-gateway
+    # depends_on:
+      # service-discovery:
+        # condition: service_healthy
     ports:
       - "3000:3000"
 
@@ -44,11 +57,21 @@ services:
       - "3001:3001"
 
   game-service:
+    depends_on:
+      game-db:
+        condition: service_healthy
+      # service-discovery:
+        # condition: service_healthy
     build: ./services/multiplayer-phase-10-game-service
     ports:
       - "3030:3030"
 
   player-service:
+    depends_on:
+      player-db:
+        condition: service_healthy
+      # service-discovery:
+        # condition: service_healthy
     build: ./services/multiplayer-phase-10-player-service
     ports:
       - "5000:5000"

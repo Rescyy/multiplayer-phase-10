@@ -15,7 +15,7 @@ __2.__ Game Service - Focuses on game session, player connection maintainance, g
 
 __3.__ Player Account Service - Handle player account authentication, store player data such as games, scores, friends.
 
-![alt text](images/PAD%20architecture.jpg "Title")
+![alt text](assets/PAD%20architecture.jpg "Title")
 
 Plans for future (Not going to implement for this laboratory work)
 - AI Player Service
@@ -104,12 +104,12 @@ Services can only be accessed by other services. The only accessible service to 
 - __API:__ `POST /authorization`
 - __Headers:__ `Authorization: Bearer <token>`
 - __Response 200 OK__
-- __Caching:__ `True`
         ```
         {
             "id": "userId"
         }
         ```
+- __Caching:__ `True`
 - __Response 401 Unauthorized__
 
 #### Get player information
@@ -119,12 +119,12 @@ Get information about the player/players, account information.
 - __API:__ `GET /players/{id}`
 - __URL Params:__ `optional id = <string>`
 - __Query Params:__ 
-- __Caching:__ `True`
 ```
 optional sortby = default 'id' | 'creation-time' | 'games-won' | 'games-won-ratio' | 'games-played'
 optional offset = default 0 | <int>
 optional size = default MAX | <int>
 ```
+- __Caching:__ `True`
 - __Response 200 OK__
     - Case: With path parameter `id`
     ```
@@ -152,7 +152,7 @@ optional size = default MAX | <int>
 
 Receive code to an empty available game session
 
-- __URL:__ `GET /gamesession`
+- __API:__ `GET /gamesession`
 - __Response 200 OK:__
         ```
         {
@@ -262,6 +262,40 @@ All players will be required to send this command to start the game.
 }
 ```
 
-```<update-type = "start-phase" | "end-phase" | "player-moved"```
+```<update-type> = "start-phase" | "end-phase" | "player-moved"```
 
-## Task Requirements
+### Service Discovery
+
+#### Register Service
+
+A service will register to the service discovery. It will then store the address and port the service came from.
+
+- __API:__ `POST /register`
+- __Raw Data:__ 
+```
+{
+    "service-type": <service-type>
+}
+```
+
+```<service-type> = "gateway" | "player-service" | "game-service"```
+- __Response 200 OK__
+- __Response 400 Bad Request__
+
+#### Fetch Services
+
+- __API:__ `GET /services/:<service-type>`
+- __Response 200 OK__
+```
+{
+    "service-type": [
+        {
+            "id": 1,
+            "url": 127.0.0.1:3000,
+        },
+        ...
+    ],
+    ...
+}
+```
+- __Response 400 Bad Request__

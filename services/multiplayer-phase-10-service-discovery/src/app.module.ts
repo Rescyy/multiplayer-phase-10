@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { PingController } from './ping/ping.controller';
+import { PingService } from './ping/ping.service';
+import { RegistryController } from './registry/registry.controller';
+import { RegistryService } from './registry/registry.service';
 
 @Module({
   imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [PingController, RegistryController],
+  providers: [PingService, RegistryService],
 })
 export class AppModule {}
