@@ -1,6 +1,7 @@
 import { Body, Controller, Get, HttpCode, Ip, Param, Post, Req } from '@nestjs/common';
 import { RegistryService } from './registry.service';
 import { ServiceInstance, ServiceType } from 'src/service_instance/service_instance';
+import { GrpcMethod } from '@nestjs/microservices';
 
 @Controller('services')
 export class RegistryController {
@@ -18,7 +19,10 @@ export class RegistryController {
     }
 
     @Get()
+    @GrpcMethod('ServiceDiscovery', 'GetServiceInstances')
     getAllServices(): Map<ServiceType, ServiceInstance[]> {
-        return this.registryService.getAllServices();
+        const services= this.registryService.getAllServices();
+        console.log(services);
+        return services;
     }
 }

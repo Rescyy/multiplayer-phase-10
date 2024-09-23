@@ -1,10 +1,27 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(bodyParser.json()); 
-  await app.listen(3001);
+  app.listen(3001);
+
+  const grpcApp = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'servicediscovery',
+        protoPath: join(__dirname, '../proto/servicediscovery.proto'),
+        url: 'localhost:5000',
+      },
+    },
+  );
+
+  grpcApp.listen();
 }
+
 bootstrap();

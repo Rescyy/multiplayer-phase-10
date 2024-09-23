@@ -1,7 +1,7 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
 
-package service-discovery;
+package servicediscovery;
 
 service ServiceDiscovery {
     rpc GetServiceInstances(google.protobuf.Empty) returns (ServiceRegistry) {}
@@ -21,6 +21,6 @@ message ServiceInstance {
 }
 
 message ServiceRegistry {
-    map<ServiceType, ServiceInstance> services = 1;
+    map<int32, ServiceInstance> services = 1;
 }
 

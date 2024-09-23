@@ -13,7 +13,6 @@ export class RegistryService {
         Object.keys(ServiceType).forEach((key) => {
             this.registry.set(ServiceType[key], []);
         });
-        console.log(this.registry);
     }
 
     registerService(body: Object, ip: string): Object {

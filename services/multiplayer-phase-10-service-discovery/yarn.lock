@@ -370,7 +370,7 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@grpc/grpc-js@^1.11.3":
+"@grpc/grpc-js@*", "@grpc/grpc-js@^1.11.3":
   version "1.11.3"
   resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.11.3.tgz"
   integrity sha512-i9UraDzFHMR+Iz/MhFLljT+fCpgxZ3O6CxwGJ8YuNYHJItIHUzKJpW2LvoFZNnGPwqc9iWy9RAucxV0JoR9aUQ==
@@ -742,6 +742,14 @@
     path-to-regexp "3.3.0"
     tslib "2.7.0"
     uid "2.0.2"
+
+"@nestjs/microservices@^10.0.0", "@nestjs/microservices@^10.4.4":
+  version "10.4.4"
+  resolved "https://registry.npmjs.org/@nestjs/microservices/-/microservices-10.4.4.tgz"
+  integrity sha512-OyNyYLBpcXx/ITD+UyEQAmfSApQPqClXcVT+UjEymiTdZwkhNNCG6Fh2jRnCK6n620FvgAnKYRY8GG+2Lo+gbw==
+  dependencies:
+    iterare "1.2.1"
+    tslib "2.7.0"
 
 "@nestjs/platform-express@^10.0.0":
   version "10.4.3"
