@@ -270,28 +270,41 @@ All players will be required to send this command to start the game.
 
 A service will register to the service discovery. It will then store the address and port the service came from.
 
-- __API:__ `POST /register`
+- __API:__ `POST /services`
 - __Raw Data:__ 
 ```
 {
-    "service-type": <service-type>
+    "service-type": <service-type>,
+    "port": <port>,
+    "healthcheck-params": {
+        "period": 5,
+    }
 }
 ```
 
 ```<service-type> = "gateway" | "player-service" | "game-service"```
+```optional healthcheck-params```
+```optional period - default 5``` 
 - __Response 200 OK__
-- __Response 400 Bad Request__
+```
+{
+    "id": <string>,
+    "url": "localhost:1234",
+}
+```
+- __Response 400 Bad Request__ - for invalid service types
 
 #### Fetch Services
 
-- __API:__ `GET /services/:<service-type>`
+- __API:__ `GET /services/{service-type}`
+- __URL Params:__ optional service-type = <service-type>
 - __Response 200 OK__
 ```
 {
     "service-type": [
         {
-            "id": 1,
-            "url": 127.0.0.1:3000,
+            "id": <string>,
+            "url": "localhost:1234",
         },
         ...
     ],

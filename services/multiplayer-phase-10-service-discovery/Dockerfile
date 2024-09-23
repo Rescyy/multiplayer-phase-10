@@ -2,6 +2,7 @@
 # Base environment
 #
 FROM node:18.19-alpine AS base
+RUN apk --no-cache add curl
 #
 # Builder
 #

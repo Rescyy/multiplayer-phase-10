@@ -1,0 +1,26 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+package service-discovery;
+
+service ServiceDiscovery {
+    rpc GetServiceInstances(google.protobuf.Empty) returns (ServiceRegistry) {}
+}
+
+enum ServiceType {
+    Gateway = 0;
+    GameService = 1;
+    PlayerService = 2;
+}
+
+message ServiceInstance {
+    string id = 1;
+    string name = 2;
+    ServiceType type = 3;
+    string url = 4;
+}
+
+message ServiceRegistry {
+    map<ServiceType, ServiceInstance> services = 1;
+}
+
