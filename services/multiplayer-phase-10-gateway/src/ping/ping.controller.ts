@@ -7,6 +7,7 @@ export class PingController {
 
     @Get('ping')
     getPing(): string {
+      console.log("Pinged");
       return this.pingService.getPing();
     }
 }

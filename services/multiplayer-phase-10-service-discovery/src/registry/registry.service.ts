@@ -2,21 +2,20 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { randomUUID } from 'crypto';
 import { ServiceInstance, ServiceType } from 'src/service_instance/service_instance';
 import axios from 'axios';
-import { timeStamp } from 'console';
 
 @Injectable()
 export class RegistryService {
-    private registry: Map<ServiceType, ServiceInstance[]>;
+    private registry: ServiceInstance[];
 
     constructor() {
-        this.registry = new Map();
-        Object.keys(ServiceType).forEach((key) => {
-            this.registry.set(ServiceType[key], []);
-        });
+        this.registry = [];
     }
 
     registerService(body: Object, ip: string): Object {
 
+        if (body['service-type'] === undefined || body['port'] === undefined) {
+            throw new BadRequestException("Missing required fields.");
+        }
         const serviceType = body['service-type'] as ServiceType;
         const port = body['port'] as number;
         var healthcheckPeriod = 5;
@@ -36,16 +35,19 @@ export class RegistryService {
         }
 
         const serviceInstance = new ServiceInstance(randomUUID(), serviceType, `http://[${ip}]:${port}`, healthcheckPeriod);
-        
-        this.registry.get(serviceType).push(serviceInstance);
+
+        console.log("Registering service: " + serviceInstance);
+        this.registry.push(serviceInstance);
+
 
         const timeout = healthcheckPeriod * 1000;
         const tripTime = timeout * 5.5;
 
         // Spawn a thread for health check
-        setInterval(async () => {
+        const intervalId = setInterval(async () => {
             // console.log(`Health checking\nService Type:${serviceType}\nID:${serviceInstance.id}\nURL:${serviceInstance.url}}`);
             try {
+                console.log(`Health checking ${serviceInstance.id}; url: ${serviceInstance.url}`);
                 const response = await axios.get(`${serviceInstance.url}/ping`, { timeout: timeout });
                 if (response.status === 200 && response.data === 'pong') {
                     // console.log(`Health check passed for ${serviceInstance.id}`);
@@ -63,11 +65,12 @@ export class RegistryService {
                 }
                 
                 if (serviceInstance.errors.length == 3) {
-                    console.log("Health check failed for " + serviceInstance.id + "Errors: " + serviceInstance.errors);
+                    console.log("Health check failed for " + serviceInstance.id + "\nErrors: " + serviceInstance.errors);
                 }
                 if (serviceInstance.errors.length > 5) {
                     console.log(`Deregistering ${serviceInstance.id} due to health check failure.`);
-                    this.registry.set(serviceType, this.registry.get(serviceType).filter((instance) => instance.id !== serviceInstance.id));
+                    this.registry = this.registry.filter((instance) => instance.id !== serviceInstance.id);
+                    clearInterval(intervalId);
                 }
             }
         }, healthcheckPeriod * 1000);
@@ -80,10 +83,10 @@ export class RegistryService {
     }
 
     getServices(serviceType: ServiceType): ServiceInstance[] {
-        return this.registry.get(serviceType);
+        return this.registry.filter((instance) => instance.type === serviceType);
     }
 
-    getAllServices(): Map<ServiceType, ServiceInstance[]> {
+    getAllServices(): ServiceInstance[] {
         return this.registry;
     }
 }

@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Ip, Param, Post, Req } from '@nestjs/c
 import { RegistryService } from './registry.service';
 import { ServiceInstance, ServiceType } from 'src/service_instance/service_instance';
 import { GrpcMethod } from '@nestjs/microservices';
+import axios from 'axios';
 
 @Controller('services')
 export class RegistryController {
@@ -10,7 +11,10 @@ export class RegistryController {
     @HttpCode(200)
     @Post()
     registerService(@Body() body: Object, @Ip() ip: string): Object {
-        return this.registryService.registerService(body, ip);
+
+        const response = this.registryService.registerService(body, ip);
+
+        return response;
     }
 
     @Get(':serviceType')
@@ -19,10 +23,23 @@ export class RegistryController {
     }
 
     @Get()
-    @GrpcMethod('ServiceDiscovery', 'GetServiceInstances')
-    getAllServices(): Map<ServiceType, ServiceInstance[]> {
-        const services= this.registryService.getAllServices();
+    getAllServices(): Object {
+        const services = {"services": this.registryService.getAllServices()};
         console.log(services);
         return services;
+    }
+
+    @GrpcMethod('ServiceDiscovery', 'GetServiceInstances')
+    getAllServicesGrpc(): Object {
+        const services = this.registryService.getAllServices();
+        console.log(services);
+        return {"services": services};
+    }
+
+    @Get('pingeveryservice')
+    pingPlayerService() {
+        console.log("pinged");
+        const response = axios.get(`http://localhost:5000/ping`, { timeout: 5000 });
+        return response;
     }
 }

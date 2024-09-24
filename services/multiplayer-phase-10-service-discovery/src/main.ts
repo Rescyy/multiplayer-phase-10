@@ -9,18 +9,16 @@ async function bootstrap() {
   app.use(bodyParser.json()); 
   app.listen(3001);
 
-  const grpcApp = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
+  const grpcApp = app.connectMicroservice<MicroserviceOptions>(
     {
       transport: Transport.GRPC,
       options: {
         package: 'servicediscovery',
         protoPath: join(__dirname, '../proto/servicediscovery.proto'),
-        url: 'localhost:5000',
+        url: 'localhost:5001',
       },
     },
   );
-
   grpcApp.listen();
 }
 
