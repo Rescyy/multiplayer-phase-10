@@ -10,7 +10,7 @@ from service import PlayerService
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-app.logger.setLevel(logging.WARNING)
+# app.logger.setLevel(logging.WARNING)
 jwt = JWTManager(app)
 
 service = PlayerService()
@@ -21,7 +21,7 @@ def handle_service_result(result, message_builder):
     else:
         return jsonify(result[0]), result[1]
 
-@app.route('/ping')
+@app.route('/ping', methods=['GET'])
 def hello_world():
     return 'pong'
 
@@ -80,5 +80,5 @@ def update_player_game(id):
     return handle_service_result(result, message_builder=lambda x: {'message': 'Player updated'})
 
 if __name__ == "__main__":
-    # service_discovery_subscription()
+    service_discovery_subscription()
     app.run(host="0.0.0.0", port=PLAYER_SERVICE_PORT)

@@ -4,9 +4,9 @@ from consts import PLAYER_SERVICE_PORT, SERVICE_DISCOVERY_PORT
 import time
 
 def service_discovery_subscription():
-    url = f'http://service-discovery:{SERVICE_DISCOVERY_PORT}/services'
+    url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
     data = {
-        "service-type": "player-service", 
+        "service-type": 2, 
         "port": PLAYER_SERVICE_PORT,
         "healthcheck-params": {
             "period": 5,
@@ -17,9 +17,12 @@ def service_discovery_subscription():
     for i in range(2):
         try:
             response = requests.post(url, json=data)
+            
             if response.status_code == 200:
                 subscribed = True
                 break
+            else:
+                print(response.text)
         except Exception as e:
             print(e)
         finally:
