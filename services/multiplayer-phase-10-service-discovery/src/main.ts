@@ -15,8 +15,8 @@ async function bootstrap() {
       options: {
         package: 'servicediscovery',
         protoPath: join(__dirname, '../proto/servicediscovery.proto'),
-        url: 'localhost:5000',
-        // url: 'service-discovery:5000',
+        // url: 'localhost:5000',
+        url: 'service-discovery:5000',
       },
     },
   );

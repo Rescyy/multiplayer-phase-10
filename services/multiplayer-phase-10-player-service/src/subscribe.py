@@ -4,8 +4,8 @@ from consts import THIS_SERVICE_PORT, SERVICE_DISCOVERY_PORT
 import time
 
 def service_discovery_subscription():
-    url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
-    # url = f'http://service-discovery:{SERVICE_DISCOVERY_PORT}/services'
+    # url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
+    url = f'http://service-discovery:{SERVICE_DISCOVERY_PORT}/services'
     data = {
         "service-type": 2, 
         "port": THIS_SERVICE_PORT,

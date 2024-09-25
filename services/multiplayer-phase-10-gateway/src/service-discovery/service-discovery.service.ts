@@ -16,8 +16,8 @@ export class ServiceDiscoveryService {
     };
 
     async initServiceDiscovery() {
-        await this.httpWrapper.post('http://localhost:3001/services', {
-        // await this.httpWrapper.post('http://service-discovery:3001/services', {
+        // await this.httpWrapper.post('http://localhost:3001/services', {
+        await this.httpWrapper.post('http://service-discovery:3001/services', {
             "service-type": ServiceType.GATEWAY,
             "port": 3000,
         });

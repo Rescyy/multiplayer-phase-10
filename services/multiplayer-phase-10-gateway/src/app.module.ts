@@ -23,8 +23,8 @@ import { ProxyGateway } from './game-service/websocket-proxy';
         options: {
           package: 'servicediscovery', // The package name from your .proto file
           protoPath: join(__dirname, '../proto/servicediscovery.proto'), // Path to your .proto file
-          url: 'localhost:5000', // gRPC server URL
-          // url: 'service-discovery:5000', // gRPC server URL
+          // url: 'localhost:5000', // gRPC server URL
+          url: 'service-discovery:5000', // gRPC server URL
         },
       },
     ]),
