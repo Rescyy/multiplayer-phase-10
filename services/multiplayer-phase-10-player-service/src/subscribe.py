@@ -1,13 +1,14 @@
 import requests
-from consts import PLAYER_SERVICE_PORT, SERVICE_DISCOVERY_PORT
+from consts import THIS_SERVICE_PORT, SERVICE_DISCOVERY_PORT
 
 import time
 
 def service_discovery_subscription():
     url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
+    # url = f'http://service-discovery:{SERVICE_DISCOVERY_PORT}/services'
     data = {
         "service-type": 2, 
-        "port": PLAYER_SERVICE_PORT,
+        "port": THIS_SERVICE_PORT,
         "healthcheck-params": {
             "period": 5,
         }

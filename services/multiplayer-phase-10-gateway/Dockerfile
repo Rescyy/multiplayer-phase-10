@@ -10,6 +10,7 @@ WORKDIR /usr/src/gateway
 # COPY example.env ./.env
 COPY src ./src
 COPY *.json *.lock *.js ./
+COPY proto ./proto
 # yarn depends on bash and git
 # RUN apk add --no-cache bash git yarn python3 make g++
 
@@ -31,4 +32,5 @@ COPY --from=builder /usr/src/gateway/package.json package.json
 COPY --from=builder /usr/src/gateway/yarn.lock yarn.lock
 COPY --from=builder /usr/src/gateway/tsconfig.build.json tsconfig.build.json
 COPY --from=builder /usr/src/gateway/tsconfig.json tsconfig.json
+COPY --from=builder /usr/src/gateway/proto proto    
 CMD [ "yarn", "start:prod" ]

@@ -43,23 +43,27 @@ services:
     volumes:
       - shared-cache-data:/data
   
-  # gateway:
-  #   build: ./services/multiplayer-phase-10-gateway
-  #   # depends_on:
-  #     # service-discovery:
-  #       # condition: service_healthy
-  #   ports:
-  #     - "3000:3000"
+  gateway:
+    build: ./services/multiplayer-phase-10-gateway
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      player-service:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
 
   service-discovery:
     build: ./services/multiplayer-phase-10-service-discovery
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3001/ping"]
-      interval: 1s
-      timeout: 1s
+      start_period: 3s
+      interval: 15s
+      timeout: 3s
       retries: 5
     ports:
       - "3001:3001"
+      - "5000:5000"
 
   # game-service:
   #   depends_on:
@@ -72,13 +76,19 @@ services:
   #     - "3030:3030"
 
   player-service:
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6789/ping"]
+      start_period: 3s
+      interval: 15s
+      timeout: 3s
+      retries: 5
     depends_on:
       player-db:
         condition: service_healthy
       service-discovery:
         condition: service_healthy
     build: ./services/multiplayer-phase-10-player-service
-    scale: 4
+    scale: 1
 
 volumes:
   player-db-data:

@@ -17,6 +17,7 @@ export class ServiceDiscoveryService {
 
     async initServiceDiscovery() {
         await this.httpWrapper.post('http://localhost:3001/services', {
+        // await this.httpWrapper.post('http://service-discovery:3001/services', {
             "service-type": ServiceType.GATEWAY,
             "port": 3000,
         });
@@ -27,19 +28,22 @@ export class ServiceDiscoveryService {
         }, 15000);
     }
 
-    async getServiceInstances(): Promise<Object> {
-        const result = await this.grpcClientService.getServiceInstances() as {"services": { [key: number]: {id: string, type: ServiceType, url: string} }};
-        const services = result.services;
-        this.serviceMap = {};
-        for (var i = 0; i < 3; i++) {
-            this.serviceMap[i] = [];
+    async getServiceInstances() {
+        try {
+            const result = await this.grpcClientService.getServiceInstances();
+            const services = result.services;
+            this.serviceMap = {};
+            for (var i = 0; i < 3; i++) {
+                this.serviceMap[i] = [];
+            }
+            for (var i = 0; i < services.length; i++) {
+                const service = services[i];
+                const { id, type, url } = service;
+                this.serviceMap[type].push({ id, url });
+            }
+            // console.log(this.serviceMap);
+        } catch (error) {
+            console.error('Error occurred while fetching services via grpc:', error);
         }
-        for (const key in services) {
-            const service = services[key];
-            const { id, type, url } = service;
-            this.serviceMap[type].push({ id, url });
-        }
-        console.log(this.serviceMap);
-        return this.serviceMap;
     }
 }

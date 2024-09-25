@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { ServiceInstance, ServiceType } from 'src/service_instance/service_instance';
 import axios from 'axios';
@@ -13,11 +13,26 @@ export class RegistryService {
 
     registerService(body: Object, ip: string): Object {
 
+        if (ip === "::1") {
+            ip = "localhost";
+        } else {
+            ip = `[${ip}]`;
+        }
         if (body['service-type'] === undefined || body['port'] === undefined) {
             throw new BadRequestException("Missing required fields.");
         }
-        const serviceType = body['service-type'] as ServiceType;
         const port = body['port'] as number;
+        const serviceType = body['service-type'] as ServiceType;
+        const url = `http://${ip}:${port}`;
+
+        var serviceInstance = this.registry.find((instance) => instance.url === url);
+        if (serviceInstance !== undefined) {
+            return {
+                id: serviceInstance.id,
+                url: serviceInstance.url,
+            };
+        }
+
         var healthcheckPeriod = 5;
 
         const healthcheckParams = body['healthcheck-params'];
@@ -34,7 +49,7 @@ export class RegistryService {
             throw new BadRequestException(`Invalid service type: ${serviceType}`);
         }
 
-        const serviceInstance = new ServiceInstance(randomUUID(), serviceType, `http://[${ip}]:${port}`, healthcheckPeriod);
+        serviceInstance = new ServiceInstance(randomUUID(), serviceType, url, healthcheckPeriod);
 
         console.log("Registering service: " + serviceInstance);
         this.registry.push(serviceInstance);
@@ -56,7 +71,7 @@ export class RegistryService {
                     throw new Error("Health check timeout reached.");
                 }
             } catch (error) {
-                const errorLog = {message: `${serviceInstance.id} ${error.message}`, time: Date.now()};
+                const errorLog = {error: `${serviceInstance.id} ${error.message}`, time: Date.now()};
                 console.log(errorLog);
                 serviceInstance.errors.push(errorLog);
                 
@@ -65,7 +80,7 @@ export class RegistryService {
                 }
                 
                 if (serviceInstance.errors.length == 3) {
-                    console.log("Health check failed for " + serviceInstance.id + "\nErrors: " + serviceInstance.errors);
+                    console.log("Health check failed for " + serviceInstance + "\nErrors: " + serviceInstance.errors);
                 }
                 if (serviceInstance.errors.length > 5) {
                     console.log(`Deregistering ${serviceInstance.id} due to health check failure.`);

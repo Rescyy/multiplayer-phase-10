@@ -20,6 +20,6 @@ message ServiceInstance {
 }
 
 message ServiceRegistry {
-    map<int32, ServiceInstance> services = 1;
+    repeated ServiceInstance services = 1;
 }
 

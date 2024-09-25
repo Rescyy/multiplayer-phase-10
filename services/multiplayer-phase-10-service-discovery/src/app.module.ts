@@ -16,7 +16,8 @@ import { RegistryModule } from './registry/registry.module';
         options: {
           package: 'servicediscovery',  // The package name defined in the proto file
           protoPath: join(__dirname, '../proto/servicediscovery.proto'),
-          url: 'localhost:5001', // gRPC server URL
+          url: 'localhost:5000',
+          // url: 'service-discovery:5000', // gRPC server URL
         },
       },
     ]),

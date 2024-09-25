@@ -32,14 +32,7 @@ export class RegistryController {
     @GrpcMethod('ServiceDiscovery', 'GetServiceInstances')
     getAllServicesGrpc(): Object {
         const services = this.registryService.getAllServices();
-        console.log(services);
+        // console.log(services);
         return {"services": services};
-    }
-
-    @Get('pingeveryservice')
-    pingPlayerService() {
-        console.log("pinged");
-        const response = axios.get(`http://localhost:5000/ping`, { timeout: 5000 });
-        return response;
     }
 }

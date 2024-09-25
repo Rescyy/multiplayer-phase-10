@@ -26,6 +26,7 @@ class Cache:
     def __init__(self):
         try:
             self.cache = redis.Redis(host='localhost', port=6379, db=0)
+            # self.cache = redis.Redis(host='shared-cache', port=6379, db=0)
             self._magicstring = "player-service:"
             self.cache.ping()
             print("Connected to cache")

@@ -6,14 +6,13 @@ export enum ServiceType {
 
 export class ServiceInstance {
         
-    public errors: {message: string, time: number}[] = [];
+    public errors: {error: string, time: number}[] = [];
 
     constructor(
         public readonly id: string,
         public readonly type: ServiceType,
         public readonly url: string,
-        public readonly healthcheckPeriod: number,
-        
+        public readonly healthcheckPeriod: number  
     ) {}
 
     toString(): string {

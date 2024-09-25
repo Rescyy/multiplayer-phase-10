@@ -9,6 +9,7 @@ RUN apk --no-cache add curl
 FROM base AS builder
 WORKDIR /usr/src/service-discovery
 # COPY example.env ./.env
+COPY proto ./proto
 COPY src ./src
 COPY *.json *.lock *.js ./
 # yarn depends on bash and git
@@ -32,4 +33,5 @@ COPY --from=builder /usr/src/service-discovery/package.json package.json
 COPY --from=builder /usr/src/service-discovery/yarn.lock yarn.lock
 COPY --from=builder /usr/src/service-discovery/tsconfig.build.json tsconfig.build.json
 COPY --from=builder /usr/src/service-discovery/tsconfig.json tsconfig.json
+COPY --from=builder /usr/src/service-discovery/proto proto
 CMD [ "yarn", "start:prod" ]

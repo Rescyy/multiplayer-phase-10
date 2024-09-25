@@ -3,8 +3,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask import request, jsonify
 from datetime import timedelta
 from subscribe import service_discovery_subscription
-from consts import PLAYER_SERVICE_PORT
-import logging
+from consts import THIS_SERVICE_PORT
 from service import PlayerService
 
 app = Flask(__name__)
@@ -81,4 +80,4 @@ def update_player_game(id):
 
 if __name__ == "__main__":
     service_discovery_subscription()
-    app.run(host="0.0.0.0", port=PLAYER_SERVICE_PORT)
+    app.run(host="0.0.0.0", port=THIS_SERVICE_PORT)

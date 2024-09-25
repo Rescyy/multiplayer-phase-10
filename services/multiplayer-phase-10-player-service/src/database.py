@@ -11,16 +11,17 @@ class ConflictException(Exception):
 
 class DatabaseAPI:
     def __init__(self):
-        # if not self.connect_to_db_as_deployed():
-        #     self.connect_to_db_as_local()
-        if not self.connect_to_db_as_local():
-            self.connect_to_db_as_deployed()
+        if not self.connect_to_db_as_deployed():
+            self.connect_to_db_as_local()
+        # if not self.connect_to_db_as_local():
+            # self.connect_to_db_as_deployed()
         
     def connect_to_db_as_deployed(self):
         self.dbname = "player-service-db"
         self.user = "player_db"
         self.password = "1234"
-        self.host = "player-db"
+        self.host = "localhost"
+        # self.host = "player-db"
         self.port = PLAYER_DB_PORT
         self.connection = None
         retries = 2
