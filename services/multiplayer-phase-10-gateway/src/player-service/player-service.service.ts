@@ -27,6 +27,7 @@ export class PlayerServiceService {
                 this.playerServiceInstances.push(new ServiceInstanceLoaded(playerServiceInstance.id, ServiceType.PLAYER_SERVICE, playerServiceInstance.url));
             }
         }
+        this.playerServiceInstances = this.playerServiceInstances.filter(instance => playerServiceInstances.find(playerServiceInstance => playerServiceInstance.id === instance.id));
     }
 
     selectPlayerServiceInstance(): ServiceInstanceLoaded {

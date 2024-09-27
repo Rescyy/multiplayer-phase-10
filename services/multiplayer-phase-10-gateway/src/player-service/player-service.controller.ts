@@ -19,7 +19,6 @@ export class PlayerServiceController {
 
     @Get('authorization')
     authorization(@Res({ passthrough: true }) res: Response, @Req() req: Request) {
-        console.log(req.headers.authorization);
         return this.getDirect('authorization', res, req.headers);
     }
 
