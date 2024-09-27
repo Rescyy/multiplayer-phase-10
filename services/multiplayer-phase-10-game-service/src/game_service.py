@@ -79,6 +79,7 @@ class GameService:
 
     def requestAuthorizedGameSession(self, code, ip, authorization):
         json, status = self.playerService.authorizePlayer(authorization)
+        print(json, status)
         if status != 200:
             print(f"Failed to authorize player {json}")
             return "Failed to authorize player", status

@@ -1,6 +1,7 @@
 import redis
 import json
 from datetime import date
+from consts import REDIS_HOST, REDIS_PORT
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -25,8 +26,7 @@ def loads(s):
 class Cache:
     def __init__(self):
         try:
-            self.cache = redis.Redis(host='localhost', port=6379, db=0)
-            # self.cache = redis.Redis(host='shared-cache', port=6379, db=0)
+            self.cache = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
             self._magicstring = "player-service:"
             self.cache.ping()
             print("Connected to cache")

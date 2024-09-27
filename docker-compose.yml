@@ -50,6 +50,8 @@ services:
         condition: service_healthy
       player-service:
         condition: service_healthy
+      game-service:
+        condition: service_healthy
     ports:
       - "3000:3000"
       - "80:80"
@@ -66,15 +68,21 @@ services:
       - "3001:3001"
       - "5000:5000"
 
-  # game-service:
-  #   depends_on:
-  #     game-db:
-  #       condition: service_healthy
-  #     # service-discovery:
-  #       # condition: service_healthy
-  #   build: ./services/multiplayer-phase-10-game-service
-  #   ports:
-  #     - "3030:3030"
+  game-service:
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3030/ping"]
+      start_period: 3s
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      game-db:
+        condition: service_healthy
+      service-discovery:
+        condition: service_healthy
+    build: ./services/multiplayer-phase-10-game-service
+    ports:
+      - "3030:3030"
 
   player-service:
     healthcheck:

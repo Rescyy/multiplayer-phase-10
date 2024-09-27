@@ -15,6 +15,7 @@ service = GameService()
 jwt = JWTManager(app)
 
 def handle_service_result(result, message_builder):
+    print(result)
     if result[1] // 100 == 2:
         return jsonify(message_builder(result[0])), result[1]
     else:
@@ -102,4 +103,4 @@ def handle_disconnect(*args):
 
 if __name__ == "__main__":
     service_discovery_subscription()
-    socketio.run(app, host="0.0.0.0", port=THIS_SERVICE_PORT)
+    socketio.run(app, host="0.0.0.0", port=THIS_SERVICE_PORT, allow_unsafe_werkzeug=True)

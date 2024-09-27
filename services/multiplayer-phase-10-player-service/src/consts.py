@@ -1,5 +1,13 @@
 THIS_SERVICE_PORT = 6789
 SERVICE_DISCOVERY_PORT = 3001
+# SERVICE_DISCOVERY_HOST = "localhost"
+SERVICE_DISCOVERY_HOST = "service-discovery"
 PLAYER_DB_PORT = 5432
-PLAYER_DB_HOST = "localhost"
-# PLAYER_DB_HOST = "player-db"
+# PLAYER_DB_HOST = "localhost"
+PLAYER_DB_HOST = "player-db"
+# REDIS_HOST = "localhost"
+REDIS_HOST = "shared-cache"
+REDIS_PORT = 6379
+GATEWAY_PORT = 3000
+# GATEWAY_HOST = "localhost"
+GATEWAY_HOST = "gateway"

@@ -11,10 +11,10 @@ class ConflictException(Exception):
 
 class DatabaseAPI:
     def __init__(self):
-        # if not self.connect_to_db_as_deployed():
-            # self.connect_to_db_as_local()
-        if not self.connect_to_db_as_local():
-            self.connect_to_db_as_deployed()
+        if not self.connect_to_db_as_deployed():
+            self.connect_to_db_as_local()
+        # if not self.connect_to_db_as_local():
+            # self.connect_to_db_as_deployed()
         
     def connect_to_db_as_deployed(self):
         self.dbname = "game-service-db"
