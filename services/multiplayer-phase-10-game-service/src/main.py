@@ -33,14 +33,21 @@ def getGamesession():
 @app.route('/gamesession/guest/<code>', methods=['GET'])
 def connectGuestGamesession(code):
 
-    result, username = service.requestGameSession(code, request.remote_addr)
+    result, username = service.requestGuestGameSession(code, request.remote_addr)
     
     access_token = create_access_token(identity={
         "username": username,
         "code": code
     })
 
-    return handle_service_result(result, message_builder=lambda x: {"message": x, "token": access_token, "username": username})
+    return handle_service_result(
+        result, 
+        message_builder=
+        lambda x: {
+            "message": x, 
+            "token": access_token, 
+            "username": username
+        })
 
 @app.route('/gamesession/authorized/<code>', methods=['GET'])
 def connectAuthorizedGamesession(code):
@@ -48,40 +55,50 @@ def connectAuthorizedGamesession(code):
     authorization = request.headers.get('Authorization')
 
     result, username = service.requestAuthorizedGameSession(code, request.remote_addr, authorization)
-    
+
     access_token = create_access_token(identity={
         "username": username,
         "code": code
     })
 
-    return handle_service_result(result, message_builder=lambda x: {"message": x, "token": access_token, "username": username})
+    return handle_service_result(
+        result, 
+        message_builder=
+        lambda x: {
+            "message": x, 
+            "token": access_token, 
+            "username": username
+        })
 
 @socketio.on('message', namespace='/gamesession-ws')
 @jwt_required()
-def handle_message(msg):
+def handle_message(msg, *args):
     identity = get_jwt_identity()
     username = identity.get('username')
     code = identity.get('code')
     msg = f"{code}: {username}: {msg}"
     send(msg, broadcast=True)
+    print(msg)
 
 @socketio.on('disconnect', namespace='/gamesession-ws')
 @jwt_required()
-def handle_disconnect():
+def handle_disconnect(*args):
     identity = get_jwt_identity()
     username = identity.get('username')
     code = identity.get('code')
     msg = f'{username} disconnected from room {code}'
     send(msg, broadcast=True)
+    print(msg)
 
 @socketio.on('connect', namespace='/gamesession-ws')
 @jwt_required()
-def handle_disconnect():
+def handle_disconnect(*args):
     identity = get_jwt_identity()
     username = identity.get('username')
     code = identity.get('code')
     msg = f'{username} connected from room {code}'
     send(msg, broadcast=True)
+    print(msg)
 
 if __name__ == "__main__":
     service_discovery_subscription()

@@ -1,10 +1,9 @@
-from database import ConflictException, DatabaseAPI, NotFoundException
+from database import DatabaseAPI
 from cache import Cache
 from random import choice, randrange
 import string
 from player_service_client import PlayerServiceClient
 from game_session import GameSession
-from player_instance import PlayerInstance
 
 
 def generateCode():
@@ -52,30 +51,33 @@ class GameService:
         self.cache.set(code, ip, ex=60)
         return Response.ok(code)
 
-    def requestGameSession(self, code, reqIp):
+    def requestGameSession(self, code, ip, username):
         gamesession: GameSession = self.gameSessions.get(code)
         if gamesession != None:
             pass
         else:
-            ip = self.cache.get(code)
-            if not ip:
+            cachedIp = self.cache.get(code)
+            if not cachedIp:
                 print(f"Game session {code} not found")
                 return Response.not_found("Game session not found")
-            if ip != reqIp:
+            if cachedIp != ip:
                 print(f"IP {ip} did not create game session {code}")
                 return Response.bad_request("You are not allowed to join this game session")
                            
             gamesession = GameSession(code)
             self.gameSessions[code] = gamesession
-        username = f"guest_{randrange(100_000,1_000_000)}"
-        while username in self.players:
-            username = f"guest_{randrange(100_000,1_000_000)}"
         self.players.add(username)
         gamesession.addPlayer(username)
         return Response.ok("You are connected to the game session"), username
 
+    def requestGuestGameSession(self, code, ip):
+        username = f"guest_{randrange(100_000,1_000_000)}"
+        while username in self.players:
+            username = f"guest_{randrange(100_000,1_000_000)}"
+        return self.requestGameSession(code, ip, username)
+
+
     def requestAuthorizedGameSession(self, code, ip, authorization):
-        print(authorization)
         json, status = self.playerService.authorizePlayer(authorization)
         if status != 200:
             print(f"Failed to authorize player {json}")
@@ -85,8 +87,7 @@ class GameService:
         if status != 200:
             print(f"Failed to get player info {json}")
             return json, status
-        print(json)
         name = json.get("player").get("name")
-        return self.requestGameSession(code, ip, name), name
+        return self.requestGameSession(code, ip, name)
     
     

@@ -52,6 +52,7 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
+      - "80:80"
 
   service-discovery:
     build: ./services/multiplayer-phase-10-service-discovery
