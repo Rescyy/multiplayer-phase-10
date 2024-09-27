@@ -17,7 +17,7 @@ def service_discovery_subscription():
     subscribed = None
     for i in range(2):
         try:
-            response = requests.post(url, json=data)
+            response = requests.post(url, json=data, timeout=5)
             
             if response.status_code == 200:
                 subscribed = True

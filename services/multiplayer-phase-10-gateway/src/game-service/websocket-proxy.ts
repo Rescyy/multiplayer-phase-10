@@ -12,8 +12,8 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     handleDisconnect(client: any) {
         console.log('Client disconnected');
-        this.connectionPairs[client].close();
-        this.connectionPairs.delete(client);
+        this.connectionPairs[client["id"]].close();
+        this.connectionPairs.delete(client["id"]);
     }
 
     handleConnection(client: any) {
@@ -38,7 +38,7 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
         );
 
-        this.connectionPairs[client] = targetServiceClient;
+        this.connectionPairs[client["id"]] = targetServiceClient;
         // Forward responses from the target service to the original client
         targetServiceClient.on('message', (response) => {
             client.send(response);
@@ -47,6 +47,6 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage('message')
     handleEvent(@MessageBody() data: string, @ConnectedSocket() client: any) {
-        this.connectionPairs[client].send(data);
+        this.connectionPairs[client["id"]].send(data);
     }
 }

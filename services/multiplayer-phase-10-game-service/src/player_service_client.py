@@ -7,7 +7,7 @@ class PlayerServiceClient:
         headers = {
             "Authorization": authorization
         }
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=5)
         print(response)
         # print(response)
         if response.status_code == 200:
@@ -17,5 +17,5 @@ class PlayerServiceClient:
     
     def getPlayerInfo(self, id):
         url = f"http://{GATEWAY_HOST}:{GATEWAY_PORT}/players/{id}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         return response.json(), response.status_code

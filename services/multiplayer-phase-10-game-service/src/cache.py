@@ -27,7 +27,7 @@ class Cache:
     def __init__(self):
         try:
             self.cache = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
-            self._magicstring = "player-service:"
+            self._magicstring = "game-service:"
             self.cache.ping()
             print("Connected to cache")
         except:
