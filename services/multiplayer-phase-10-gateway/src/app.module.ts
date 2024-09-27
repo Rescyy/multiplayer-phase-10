@@ -10,6 +10,8 @@ import { PlayerServiceController } from './player-service/player-service.control
 import { PlayerServiceService } from './player-service/player-service.service';
 import { HttpModule } from '@nestjs/axios';
 import { HttpWrapper } from './http/http.service';
+import { GameServiceController } from './game-service/game-service.controller';
+import { GameServiceService } from './game-service/game-service.service';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { HttpWrapper } from './http/http.service';
     ]),
     HttpModule,
   ],
-  controllers: [PingController, ServiceDiscoveryController, PlayerServiceController],
-  providers: [PingService, GrpcClientService, ServiceDiscoveryService, PlayerServiceService, HttpWrapper],
+  controllers: [PingController, ServiceDiscoveryController, PlayerServiceController, GameServiceController],
+  providers: [PingService, GrpcClientService, ServiceDiscoveryService, PlayerServiceService, HttpWrapper, GameServiceService],
 })
 export class AppModule {}

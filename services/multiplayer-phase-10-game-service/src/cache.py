@@ -36,6 +36,7 @@ class Cache:
 
     def get(self, key):
         if self.cache is None:
+            print("Cache instance is down")
             return None
         
         value = self.cache.get(self._magicstring + key)
@@ -52,6 +53,7 @@ class Cache:
     
     def set(self, key, value, ex=3600):
         if self.cache is None:
+            print("Cache instance is down")
             return None
         
         if isinstance(value, list):

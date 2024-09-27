@@ -18,22 +18,22 @@ services:
       POSTGRES_USER: ${PLAYER_DB_USER}
       POSTGRES_PASSWORD: ${PLAYER_DB_PASSWORD}
 
-  # game-db:
-  #   image: postgres:latest
-  #   restart: no
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${GAME_DB_USER} -d ${GAME_DB_NAME}"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
-  #   ports:
-  #     - "5433:5432"
-  #   volumes:
-  #     - game-db-data:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_USER: ${GAME_DB_USER}
-  #     POSTGRES_PASSWORD: ${GAME_DB_PASSWORD}
-  #     POSTGRES_DB: ${GAME_DB_NAME}
+  game-db:
+    image: postgres:latest
+    restart: no
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GAME_DB_USER} -d ${GAME_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - game-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${GAME_DB_USER}
+      POSTGRES_PASSWORD: ${GAME_DB_PASSWORD}
+      POSTGRES_DB: ${GAME_DB_NAME}
 
   shared-cache:
     image: redis:latest

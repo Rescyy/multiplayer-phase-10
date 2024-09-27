@@ -1,7 +1,7 @@
 import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from consts import PLAYER_DB_PORT
+from consts import PLAYER_DB_PORT, PLAYER_DB_HOST
 
 class NotFoundException(Exception):
     pass
@@ -20,7 +20,7 @@ class DatabaseAPI:
         self.dbname = "player-service-db"
         self.user = "player_db"
         self.password = "1234"
-        self.host = "localhost"
+        self.host = PLAYER_DB_HOST
         # self.host = "player-db"
         self.port = PLAYER_DB_PORT
         self.connection = None

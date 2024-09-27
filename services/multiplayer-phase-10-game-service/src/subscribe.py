@@ -7,7 +7,7 @@ def service_discovery_subscription():
     # url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
     url = f'http://{SERVICE_DISCOVERY_HOST}:{SERVICE_DISCOVERY_PORT}/services'
     data = {
-        "service-type": 2, 
+        "service-type": 1,
         "port": THIS_SERVICE_PORT,
         "healthcheck-params": {
             "period": 5,

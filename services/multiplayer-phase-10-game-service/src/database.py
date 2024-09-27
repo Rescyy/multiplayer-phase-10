@@ -1,7 +1,7 @@
 import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from consts import PLAYER_DB_PORT
+from consts import GAME_DB_PORT, GAME_DB_HOST
 
 class NotFoundException(Exception):
     pass
@@ -20,10 +20,10 @@ class DatabaseAPI:
         self.dbname = "game-service-db"
         self.user = "game_db"
         self.password = "1234"
-        # self.host = "localhost"
-        self.host = "game-db"
-        # self.port = 5433
-        self.port = PLAYER_DB_PORT
+        self.host = GAME_DB_HOST
+        # self.host = "game-db"
+        self.port = GAME_DB_PORT
+        # self.port = PLAYER_DB_PORT
         self.connection = None
         retries = 2
         for i in range(retries):
