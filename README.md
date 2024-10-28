@@ -15,7 +15,7 @@ __2.__ Game Service - Focuses on game session, player connection maintainance, g
 
 __3.__ Player Account Service - Handle player account authentication, store player data such as games, scores, friends.
 
-![alt text](assets/PAD%20architecture.jpg "Title")
+![alt text](assets/PAD%20architecture2.png "Title")
 
 Plans for future (Not going to implement for this laboratory work)
 - AI Player Service
@@ -32,14 +32,15 @@ Plans for future (Not going to implement for this laboratory work)
 
 - Api Gateway - NestJS framework
 - Service Discovery - NestJS framework
-- Game Service - Rust
-
-    Chosen for personal preference and challenge, it is a modern language with runtime safety stamped on its forehead. It has its own asynchronous runtime package that does not depend on system threads and which is faster.(Might regret later due to the difficulty)
+- Game Service - Python
 - Game DB - PostgreSQL
 - Player Account Service - Python
 - Player Account DB - PostgreSQL
 - Shared Cache - Redis
 - Deployment - Docker Compose
+- ELK Stack
+- Data Warehouse - PostgreSQL
+- ETL - Python
 
 ## Communication Patterns
 
@@ -172,18 +173,14 @@ Receive code to an empty available game session
 - __Headers:__ 
 ```
 Authorization: Bearer <token>
-Upgrade: websocket
-Connetion: Upgrade
-Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-Sec-WebSocket-Version: 13
 ```
 - __URL Params:__ `code = <string>`
-- __Response 101 Switching Protocols__
+- __Response 200 OK__
 ```
-// Headers // 
-Upgrade: websocket
-Connection: Upgrade
-Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+{
+    "access-token": <acces-token>,
+    "username": <username>
+}
 ```
 - __Response 401 Unauthorized__
 - __Response 400 Bad Request__ - The user did not send Upgrade headers.
@@ -192,21 +189,12 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 
 - __API:__ `GET /gamesession/guest/{code}`
 - __URL Params:__ `code = <string>`
-- __Headers:__ 
+- __Response 200 OK__
 ```
-Upgrade: websocket
-Connetion: Upgrade
-Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-Sec-WebSocket-Version: 13
-```
-- __URL Params:__ `code = <string>`
-- __Payload:__ `{"guest-username": "guestUsername"}`
-- __Response 101 Switching Protocols__
-```
-// Headers //
-Upgrade: websocket
-Connection: Upgrade
-Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+{
+    "access-token": <acces-token>,
+    "username": <username>
+}
 ```
 - __Response 400 Bad Request__ - The user did not send Upgrade headers.
 
@@ -312,3 +300,17 @@ A service will register to the service discovery. It will then store the address
 }
 ```
 - __Response 400 Bad Request__
+
+### 2PC/Long-Running Saga Transaction
+
+#### Close Running Game Session and Save it to Database
+
+- __API__: `DELETE /gamesession/<code>`
+- __URL Params:__ code
+- __Headers:__
+```
+Authorization: Bearer <token>
+```
+- __Response 200 OK__
+- __Response 401 Unathorized__
+- __Response 404 Not Found__
