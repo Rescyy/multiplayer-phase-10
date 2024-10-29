@@ -1,5 +1,11 @@
 # Multiplayer Phase 10 Card Game
 
+## How to build and deploy
+
+`git clone https://github.com/Rescyy/multiplayer-phase-10.git`
+`cd multiplayer-phase-10`
+`docker-compose up`
+
 ## Application Suitability
 
 - Microservices architecture is perfect for multiplayer games which require fast response times and managing of databases. 
