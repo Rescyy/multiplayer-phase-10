@@ -5,10 +5,12 @@ from datetime import timedelta
 from subscribe import service_discovery_subscription
 from consts import THIS_SERVICE_PORT
 from service import PlayerService
+from cache import globalCache
 
+ACCESS_EXPIRES = timedelta(hours=1)
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+app.config['JWT_SECRET_KEY'] = 'foartesupersecret'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = ACCESS_EXPIRES
 # app.logger.setLevel(logging.WARNING)
 jwt = JWTManager(app)
 
@@ -46,6 +48,12 @@ def login():
 
     return handle_service_result(result, message_builder=lambda x: {'id': x, 'token': acces_token})
 
+@jwt.token_in_blocklist_loader
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+    jti = jwt_payload["jti"]
+    token_in_redis = globalCache.get(jti)
+    return token_in_redis is not None
+
 @app.route('/authorization', methods=['GET'])
 @jwt_required()
 def authorization():
@@ -54,6 +62,14 @@ def authorization():
     result = service.get_id_by_name(username)
 
     return handle_service_result(result, message_builder=lambda x: {'id': x})
+
+@app.route('/logout', methods=['DELETE'])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    globalCache.set(jti, "", ex=ACCESS_EXPIRES)
+    return jsonify({'message': 'Logged out'}), 200
+
 
 @app.route('/players', methods=['GET'])
 def get_players():

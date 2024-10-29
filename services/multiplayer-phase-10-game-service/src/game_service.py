@@ -48,26 +48,30 @@ class GameService:
         code = generateCode()
         while self.cache.get(code):
             code = generateCode()
-        self.cache.set(code, ip, ex=60)
+        self.cache.set(code, "magic", ex=240)
         return Response.ok(code)
 
     def requestGameSession(self, code, ip, username):
-        gamesession: GameSession = self.gameSessions.get(code)
-        if gamesession != None:
-            pass
-        else:
-            cachedIp = self.cache.get(code)
-            if not cachedIp:
-                print(f"Game session {code} not found")
-                return Response.not_found("Game session not found")
-            if cachedIp != ip:
-                print(f"IP {ip} did not create game session {code}")
-                return Response.bad_request("You are not allowed to join this game session")
+        # gamesession: GameSession = self.gameSessions.get(code)
+        magic = self.cache.get(code)
+        if magic == "magic":
+            self.cache.set(code, magic)
+        
+        # if gamesession != None:
+        #     pass
+        # else:
+        #     cachedIp = self.cache.get(code)
+        #     if not cachedIp:
+        #         print(f"Game session {code} not found")
+        #         return Response.not_found("Game session not found")
+        #     if cachedIp != ip:
+        #         print(f"IP {ip} did not create game session {code}")
+        #         return Response.bad_request("You are not allowed to join this game session")
                            
-            gamesession = GameSession(code)
-            self.gameSessions[code] = gamesession
-        self.players.add(username)
-        gamesession.addPlayer(username)
+        #     gamesession = GameSession(code)
+        #     self.gameSessions[code] = gamesession
+        # self.players.add(username)
+        # gamesession.addPlayer(username)
         return Response.ok("You are connected to the game session"), username
 
     def requestGuestGameSession(self, code, ip):
@@ -75,7 +79,6 @@ class GameService:
         while username in self.players:
             username = f"guest_{randrange(100_000,1_000_000)}"
         return self.requestGameSession(code, ip, username)
-
 
     def requestAuthorizedGameSession(self, code, ip, authorization):
         json, status = self.playerService.authorizePlayer(authorization)

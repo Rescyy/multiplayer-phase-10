@@ -74,3 +74,5 @@ class Cache:
         if self.cache == None:
             return None
         return self.cache.delete(self._magicstring + key)
+
+globalCache = Cache()

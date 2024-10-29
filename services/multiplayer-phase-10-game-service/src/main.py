@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask_socketio import SocketIO, emit, send
+from flask_socketio import SocketIO, emit, send, join_room, leave_room
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, get_jwt_identity
 from flask import Flask, request, jsonify
 from game_service import GameService
@@ -15,7 +15,7 @@ service = GameService()
 jwt = JWTManager(app)
 
 def handle_service_result(result, message_builder):
-    print(result)
+    print("Result:", result)
     if result[1] // 100 == 2:
         return jsonify(message_builder(result[0])), result[1]
     else:
@@ -41,14 +41,17 @@ def connectGuestGamesession(code):
         "code": code
     })
 
-    return handle_service_result(
-        result, 
-        message_builder=
-        lambda x: {
-            "message": x, 
-            "token": access_token, 
-            "username": username
-        })
+    try:
+        return handle_service_result(
+            result, 
+            message_builder=
+            lambda x: {
+                "message": x, 
+                "token": access_token, 
+                "username": username
+            })
+    except:
+        return {}, 500
 
 @app.route('/gamesession/authorized/<code>', methods=['GET'])
 def connectAuthorizedGamesession(code):
@@ -78,8 +81,8 @@ def handle_message(msg, *args):
     username = identity.get('username')
     code = identity.get('code')
     msg = f"{code}: {username}: {msg}"
-    send(msg, broadcast=True)
     print(msg)
+    emit("message", msg, broadcast=True, to=code)
 
 @socketio.on('disconnect', namespace='/gamesession-ws')
 @jwt_required()
@@ -88,18 +91,20 @@ def handle_disconnect(*args):
     username = identity.get('username')
     code = identity.get('code')
     msg = f'{username} disconnected from room {code}'
-    send(msg, broadcast=True)
+    leave_room(code)
     print(msg)
+    emit("message", msg, broadcast=True, to=code)
 
 @socketio.on('connect', namespace='/gamesession-ws')
 @jwt_required()
-def handle_disconnect(*args):
+def handle_connect(*args):
     identity = get_jwt_identity()
     username = identity.get('username')
     code = identity.get('code')
     msg = f'{username} connected from room {code}'
-    send(msg, broadcast=True)
+    join_room(code)
     print(msg)
+    emit("message", msg, broadcast=True, to=code)
 
 if __name__ == "__main__":
     service_discovery_subscription()

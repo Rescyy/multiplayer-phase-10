@@ -1,5 +1,5 @@
 from database import ConflictException, DatabaseAPI, NotFoundException
-from cache import Cache
+from cache import globalCache
 from flask import jsonify
 
 class Response:
@@ -30,7 +30,7 @@ class Response:
 class PlayerService:
     def __init__(self):
         self.dapi = DatabaseAPI()
-        self.cache = Cache()
+        self.cache = globalCache
 
     def handle_database_request(self, func):
         try:
@@ -87,5 +87,6 @@ class PlayerService:
         result = self.handle_database_request(lambda: self.dapi.update_player_game(id, won))
         if result[1] == 200:
             self.cache.delete("all")
+            self.cache.delete(str(id))
         return result
     
