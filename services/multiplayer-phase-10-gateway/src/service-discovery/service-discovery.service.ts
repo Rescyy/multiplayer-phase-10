@@ -16,16 +16,20 @@ export class ServiceDiscoveryService {
     };
 
     async initServiceDiscovery() {
-        // await this.httpWrapper.post('http://localhost:3001/services', {
-        await this.httpWrapper.post('http://service-discovery:3001/services', {
-            "service-type": ServiceType.GATEWAY,
-            "port": 3000,
-        });
-        
-        await this.getServiceInstances();
-        setInterval(() => {
-            this.getServiceInstances();
-        }, 15000);
+        try {
+            // await this.httpWrapper.post('http://localhost:3001/services', {
+            await this.httpWrapper.post('http://service-discovery:3001/services', {
+                "service-type": ServiceType.GATEWAY,
+                "port": 3000,
+            });
+            
+            await this.getServiceInstances();
+            setInterval(() => {
+                this.getServiceInstances();
+            }, 15000);
+        } catch (error) {
+            console.error('Error occurred while connecting to service discovery');
+        }
     }
 
     async getServiceInstances() {

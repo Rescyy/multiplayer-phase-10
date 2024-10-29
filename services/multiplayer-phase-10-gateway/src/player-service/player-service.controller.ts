@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, Post, Req, RequestTimeoutException, Res, ServiceUnavailableException } from '@nestjs/common';
 import { PlayerServiceService } from './player-service.service';
 import { HttpWrapper } from 'src/http/http.service';
 import {Request, Response} from 'express';
@@ -22,9 +22,15 @@ export class PlayerServiceController {
         return this.getDirect('authorization', res, req.headers);
     }
 
+    @Delete('logout')
+    logout(@Res({ passthrough: true }) res: Response, @Req() req: Request) {
+        return this.deleteDirect('logout', res, req.headers);
+    }
+
     @Get('players')
-    players(@Res({ passthrough: true }) res: Response) {
-        return this.getDirect('players', res);
+    async players(@Res({ passthrough: true }) res: Response) {
+        var response = await this.getDirect('players', res);
+        return response;
     }
 
     @Get('players/:id')
@@ -33,36 +39,92 @@ export class PlayerServiceController {
     }
 
     async postDirect(path: string, body: any, res: Response, headers?: any) {
+        const playerServiceInstance = this.playerService.selectPlayerServiceInstance();
         try {
-            const playerServiceInstance = this.playerService.selectPlayerServiceInstance();
             if (playerServiceInstance === null) {
-                throw ServiceUnavailableException;
+                res.status(503);
+                return;
             }
             playerServiceInstance.incrementLoad();
-            const response = await this.httpWrapper.post(playerServiceInstance.url + `/${path}`, body, headers);
-            playerServiceInstance.decrementLoad();
+            const response = await this.httpWrapper
+            .post(playerServiceInstance.url + `/${path}`, body, headers);
             res.status(response.status);
             return response.data;
         } catch (error) {
+            if (error.message === 'Timeout has occurred') {
+                res.status(408);
+                return;
+            }
+            if (error.status === undefined) {
+                res.status(500);
+                return;
+            }
             res.status(error.status);
             return;
+        } finally {
+            if (playerServiceInstance !== null) {
+                playerServiceInstance.decrementLoad();
+            }
         }
     }
 
     async getDirect(path: string, res: Response, headers?: any) {
+        const playerServiceInstance = this.playerService.selectPlayerServiceInstance();
         try {
-            const playerServiceInstance = this.playerService.selectPlayerServiceInstance();
             if (playerServiceInstance === null) {
-                throw ServiceUnavailableException;
+                res.status(503);
+                return;
             }
             playerServiceInstance.incrementLoad();
-            const response = await this.httpWrapper.get(playerServiceInstance.url + `/${path}`, headers);
-            playerServiceInstance.decrementLoad();
+            const response = await this.httpWrapper
+            .get(playerServiceInstance.url + `/${path}`, headers);
             res.status(response.status);
             return response.data;
         } catch (error) {
+            if (error.message === 'Timeout has occurred') {
+                res.status(408);
+                return;
+            }
+            if (error.status === undefined) {
+                res.status(500);
+                return;
+            }
             res.status(error.status);
             return;
+        } finally {
+            if (playerServiceInstance !== null) {
+                playerServiceInstance.decrementLoad();
+            }
+        }
+    }
+
+    async deleteDirect(path: string, res: Response, headers?: any) {
+        const playerServiceInstance = this.playerService.selectPlayerServiceInstance();
+        try {
+            if (playerServiceInstance === null) {
+                res.status(503);
+                return;
+            }
+            playerServiceInstance.incrementLoad();
+            const response = await this.httpWrapper.delete(playerServiceInstance.url + `/${path}`, headers);
+            
+            res.status(response.status);
+            return response.data;
+        } catch (error) {
+            if (error.message === 'Timeout has occurred') {
+                res.status(408);
+                return;
+            }
+            if (error.status === undefined) {
+                res.status(500);
+                return;
+            }
+            res.status(error.status);
+            return;
+        } finally {
+            if (playerServiceInstance !== null) {
+                playerServiceInstance.decrementLoad();
+            }
         }
     }
 

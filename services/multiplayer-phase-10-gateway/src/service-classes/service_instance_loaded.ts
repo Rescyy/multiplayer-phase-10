@@ -7,7 +7,7 @@ export class ServiceInstanceLoaded {
         public readonly type: ServiceType,
         public readonly url: string,
         public load: number = 0,
-        private readonly maxLoad: number = 60,
+        private readonly maxLoad: number = 100,
         private readonly mutex: Mutex = new Mutex(),
     ) {};
 
@@ -15,6 +15,9 @@ export class ServiceInstanceLoaded {
         const release = await this.mutex.acquire();
         if (this.load < this.maxLoad) {
             this.load++;
+        }
+        if (this.load > this.maxLoad * 0.5) {
+            console.log(`ServiceInstance ${this.id} is at ${this.load / this.maxLoad * 100}% load`);
         }
         release();
     }
