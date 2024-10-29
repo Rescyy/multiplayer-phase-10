@@ -60,7 +60,7 @@ services:
     build: ./services/multiplayer-phase-10-service-discovery
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3001/ping"]
-      start_period: 3s
+      start_period: 1s
       interval: 15s
       timeout: 3s
       retries: 5
@@ -71,7 +71,7 @@ services:
   game-service:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3030/ping"]
-      start_period: 3s
+      start_period: 1s
       interval: 15s
       timeout: 3s
       retries: 5
@@ -81,13 +81,16 @@ services:
       service-discovery:
         condition: service_healthy
     build: ./services/multiplayer-phase-10-game-service
-    ports:
-      - "3030:3030"
+    scale: 2
+    environment:
+    - PYTHONUNBUFFERED=1
+    # ports:
+      # - "3030:3030"
 
   player-service:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:6789/ping"]
-      start_period: 3s
+      start_period: 1s
       interval: 15s
       timeout: 3s
       retries: 5
@@ -97,7 +100,11 @@ services:
       service-discovery:
         condition: service_healthy
     build: ./services/multiplayer-phase-10-player-service
-    scale: 1
+    scale: 2
+    environment:
+    - PYTHONUNBUFFERED=1
+    # ports:
+      # - "6789:6789"
 
 volumes:
   player-db-data:

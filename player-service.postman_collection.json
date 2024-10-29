@@ -1,0 +1,203 @@
+{
+	"info": {
+		"_postman_id": "20312a82-d2e8-4ea8-83c7-0bd4630da3c5",
+		"name": "player-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24470235"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNzI5NDU3MywianRpIjoiMTkxNmJlZDktM2IyYy00MDc2LWEzYzMtYWIzOWZhODNmNjQ2IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Iml1YmlyZTEiLCJuYmYiOjE3MjcyOTQ1NzMsImNzcmYiOiI4MThhODdhNC0xZjU1LTQxYmMtYjIzYS0yMDg4ZDA3ZjM3NzEiLCJleHAiOjE3MjcyOTgxNzN9.psKQXiWfyhTdDvvcbikRMA1acZPRPY_XXRM-oPCxm8U",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"hehehe\",\n    \"password\": \"phehehe\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"crick\",\n    \"password\": \"password\"\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "authorization",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyODk3MDg5NSwianRpIjoiNzRhNGRhODYtMzJiZS00OWJjLTg0MGUtOGMxMTNjMzA2OTkxIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImNyaWNrIiwibmJmIjoxNzI4OTcwODk1LCJjc3JmIjoiNTFmZmZmNjYtMDlkOC00MmVkLWJiMGEtMzYzY2Q3NGNmNzBlIiwiZXhwIjoxNzI4OTc0NDk1fQ.yfG2S57wWg5yl2sks_Z0fY9wKETV2_eWmo3Xo2Dfank",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/authorization",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getplayers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "jwt",
+					"jwt": [
+						{
+							"key": "headerPrefix",
+							"value": "Bearer ",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "algorithm",
+							"value": "HS256",
+							"type": "string"
+						},
+						{
+							"key": "isSecretBase64Encoded",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "payload",
+							"value": "{}",
+							"type": "string"
+						},
+						{
+							"key": "queryParamKey",
+							"value": "token",
+							"type": "string"
+						},
+						{
+							"key": "header",
+							"value": "{}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "default"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNzAxMjQxNiwianRpIjoiNmJkZmQ5ZDgtYWZjYS00OGMwLThlYzAtNTA1MjcwOWRmYzhiIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VybmFtZSI6InJlc2N5eSJ9LCJuYmYiOjE3MjcwMTI0MTYsImNzcmYiOiIxNmIxNmFmOC1jMmQ3LTQ2MTYtYTM1Yi0zNDcxZjc0Y2ZmYjciLCJleHAiOjE3MjcwMTYwMTZ9.pM5WHXG5gkezOS7CFPr0udPLJKnq-7sv2M0o8x87P0k",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3000/players",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"players"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNzQ2NzY5MSwianRpIjoiOGQyODY1OGItZGRlOC00YzM4LTk1MTctNzlmMmQ5MTkxYWFhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InVzZXJuYW1lIiwibmJmIjoxNzI3NDY3NjkxLCJjc3JmIjoiOTBiMmI0MzQtNjRkZC00M2IyLTk3NDQtZDAwYjVjZDRjZGM2IiwiZXhwIjoxNzI3NDcxMjkxfQ.nb0sXE5nV2gzKqczMqV1fhML5ncQ1j0JyXmECkYJxwg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

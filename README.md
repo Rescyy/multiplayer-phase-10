@@ -21,7 +21,7 @@ Plans for future (Not going to implement for this laboratory work)
 - AI Player Service
 - Game Session DB, to continue games later
 - Chat Support
-- Public/Private Game Creation
+- Public/Private Game Session Distinctions
 - Friend System
 - View Player Status
 - Implement refresh token
@@ -45,22 +45,22 @@ Plans for future (Not going to implement for this laboratory work)
 ## Communication Patterns
 
 - Communication with client and between services - Websocket, HTTP
-- Communication with Redis - TCP
+- Communication with Redis - RESP3
 - Communication with Service Discovery - gRPC
 
 ## Data Managemenet
 
 #### Task Timeout
-All requests will be timed, after at least 5 seconds (to be determined), the request will be cancelled.
+All requests will be timed, after at least 5 seconds, the request will be cancelled.
 
 #### Status Ping Endpoint
 
 - __API:__ `GET /ping`
 - __Response 200 OK__
 
-The ping will be retried 5 times. If it fails five times, the service will be dropped and another one will attempt to start.
+The ping will be retried 5 times. If it fails six times one after the other, the service will be removed from the registry. In the future might look into ways of dropping it and restarting a new one instead.
 
-Services can only be accessed by other services. The only accessible service to the client is the API Gateway. The status endpoint of the API gateway can be accessed by the client. The services will be periodically pinged by the Service Discovery.
+Services can only be accessed by other services. The only accessible service to the client is the API Gateway. The status endpoint of the API gateway can be accessed by the client. The services will be periodically pinged by the Service Discovery to ensure the health status of the services.
 
 ### Player User Service
 
@@ -182,75 +182,34 @@ Authorization: Bearer <token>
     "username": <username>
 }
 ```
+- __Response 400 Bad Request__
 - __Response 401 Unauthorized__
-- __Response 400 Bad Request__ - The user did not send Upgrade headers.
 
 ##### as a Guest Player
 
 - __API:__ `GET /gamesession/guest/{code}`
 - __URL Params:__ `code = <string>`
-- __Response 200 OK__
+- __Headers:__ 
+- __URL Params:__ `code = <string>`
+- __Payload:__ `{"guest-username": "guestUsername"}`
+- __Response 200 OK:__
 ```
 {
-    "access-token": <acces-token>,
+    "token": <token>,
     "username": <username>
 }
 ```
-- __Response 400 Bad Request__ - The user did not send Upgrade headers.
+- __Response 400 Bad Request__
 
-The websocket path will be the same as the one with which the user requested a websocket connection.
 
-### Game Service - Websocket
+### Game Service - Websocket/Socket.IO
 
-#### Both Client and Service
-
-- Ok Response: `{ "response": "OK" }`
-- Error Response: `{ "response": "ERR" }`
-
-#### To Service
-
-- Send Player State: 
+- __API:__ `/gamesession-ws`
+- __Headers:__
 ```
-{ 
-    "player-action": "Set Player State",
-    "state": <player-state>,
-}
+Authorization: Bearer <token>
 ```
-
-```<player-state> = "ready" | "not ready" | "pending"```
-
-All players will be required to send this command to start the game.
-- Make move: 
-```
-{
-    "player-action": "Move", 
-    "move-type": <move-type>, 
-    "args": {<move-type-args>},
-}
-```
-
-#### From Service
-
-- Send Game State
-```
-{
-    "game-action": "Game State",
-    "state": <game-state>,
-}
-```
-
-```<game-state> = "lobby" | "starting" | "ongoing" | "ending"```
-
-- Send Game Update
-```
-{
-    "game-action": "Game Update",
-    "update-type": <update-type>,
-    "args": {<update-type-args>},
-}
-```
-
-```<update-type> = "start-phase" | "end-phase" | "player-moved"```
+- __Websocket Events__ `connect` `disconnect` `message`
 
 ### Service Discovery
 
@@ -276,7 +235,7 @@ A service will register to the service discovery. It will then store the address
 - __Response 200 OK__
 ```
 {
-    "id": <string>,
+    "id": <uuid>,
     "url": "localhost:1234",
 }
 ```
@@ -285,20 +244,19 @@ A service will register to the service discovery. It will then store the address
 #### Fetch Services
 
 - __API:__ `GET /services/{service-type}`
-- __URL Params:__ optional service-type = <service-type>
+- __URL Params:__ optional service-type
 - __Response 200 OK__
 ```
 {
-    "service-type": [
-        {
-            "id": <string>,
-            "url": "localhost:1234",
-        },
+    <ServiceType>: [
+        <ServiceInstance>
         ...
     ],
     ...
 }
 ```
+`<ServiceType>:` 
+`0 GATEWAY` `1 GAME-SERVICE` `2 PLAYER-SERVICE`
 - __Response 400 Bad Request__
 
 ### 2PC/Long-Running Saga Transaction
@@ -312,5 +270,6 @@ A service will register to the service discovery. It will then store the address
 Authorization: Bearer <token>
 ```
 - __Response 200 OK__
+- __Response 400 Bad Request__
 - __Response 401 Unathorized__
 - __Response 404 Not Found__

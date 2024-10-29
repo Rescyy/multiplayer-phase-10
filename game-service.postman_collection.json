@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "60708af9-74ac-40e7-afcd-012f4273c337",
+		"name": "game-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24470235"
+	},
+	"item": [
+		{
+			"name": "get_room",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/gamesession",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"gamesession"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "join_room",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/gamesession/guest/JT6ESO",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"gamesession",
+						"guest",
+						"JT6ESO"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "join_room_authorized",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNzUwMDYxMywianRpIjoiZDkyZjgwZmItNGFiNi00YzM0LWI2ODAtMWVmMTNmYjg4ZmNhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImNyaWNrIiwibmJmIjoxNzI3NTAwNjEzLCJjc3JmIjoiZDk0YmI4OTEtZmRmZi00Y2VjLWJlNGQtMDhkNWU1ODRkOTNiIiwiZXhwIjoxNzI3NTA0MjEzfQ.pIWtJu92B_KUph1BS3TLeXrZo60NpMl-IhNu6wO3Res",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/gamesession/authorized/VW7BW0",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"gamesession",
+						"authorized",
+						"VW7BW0"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
