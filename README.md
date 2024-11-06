@@ -3,8 +3,10 @@
 ## How to build and deploy
 
 `git clone https://github.com/Rescyy/multiplayer-phase-10.git`
+
 `cd multiplayer-phase-10`
-`docker-compose up`
+
+`docker-compose build && docker-compose up`
 
 ## Application Suitability
 
