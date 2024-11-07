@@ -7,11 +7,12 @@ RUN apk --no-cache add curl
 # Builder
 #
 FROM base AS builder
-WORKDIR /usr/src/service-discovery
+WORKDIR /usr/src
 # COPY example.env ./.env
 COPY proto ./proto
 COPY src ./src
 COPY *.json *.lock *.js ./
+COPY .env.production ./.env
 # yarn depends on bash and git
 # RUN apk add --no-cache bash git yarn python3 make g++
 
@@ -25,13 +26,13 @@ FROM base
 ENV NODE_ENV=production
 WORKDIR /app
 
-# COPY --from=builder /build/.env .env
-COPY --from=builder /usr/src/service-discovery/dist dist
+COPY --from=builder /usr/src/.env .env
+COPY --from=builder /usr/src/dist dist
 # COPY --from=builder /build/api api
-COPY --from=builder /usr/src/service-discovery/node_modules node_modules
-COPY --from=builder /usr/src/service-discovery/package.json package.json
-COPY --from=builder /usr/src/service-discovery/yarn.lock yarn.lock
-COPY --from=builder /usr/src/service-discovery/tsconfig.build.json tsconfig.build.json
-COPY --from=builder /usr/src/service-discovery/tsconfig.json tsconfig.json
-COPY --from=builder /usr/src/service-discovery/proto proto
+COPY --from=builder /usr/src/node_modules node_modules
+COPY --from=builder /usr/src/package.json package.json
+COPY --from=builder /usr/src/yarn.lock yarn.lock
+COPY --from=builder /usr/src/tsconfig.build.json tsconfig.build.json
+COPY --from=builder /usr/src/tsconfig.json tsconfig.json
+COPY --from=builder /usr/src/proto proto
 CMD [ "yarn", "start:prod" ]

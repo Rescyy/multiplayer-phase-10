@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException, RequestTimeoutException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
-import { firstValueFrom, timeout , catchError } from 'rxjs';
+import { firstValueFrom, timeout , catchError, retry } from 'rxjs';
 
 @Injectable()
 export class HttpWrapper {
@@ -12,7 +12,7 @@ export class HttpWrapper {
         const options = headers ? { headers } : undefined;
         const response = await firstValueFrom(
             this.httpService.post(url, body, options).pipe(
-                timeout(5000),    // Timeout after 5000ms (5 seconds)
+                timeout(5000),
             )
         );
         return response;
@@ -22,7 +22,7 @@ export class HttpWrapper {
         const options = headers ? { headers } : undefined;
         const response = await firstValueFrom(
             this.httpService.get(url, options).pipe(
-                timeout(5000),    // Timeout after 5000ms (5 seconds)
+                timeout(5000),
             )
         );
         return response;
@@ -34,7 +34,7 @@ export class HttpWrapper {
         const options = headers ? { headers } : undefined;
         const response = await firstValueFrom(
             this.httpService.delete(url, options).pipe(
-                timeout(5000),    // Timeout after 5000ms (5 seconds)
+                timeout(5000),
             )
         );
         return response;

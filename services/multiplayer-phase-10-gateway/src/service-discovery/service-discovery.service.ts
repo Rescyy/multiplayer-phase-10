@@ -17,8 +17,7 @@ export class ServiceDiscoveryService {
 
     async initServiceDiscovery() {
         try {
-            // await this.httpWrapper.post('http://localhost:3001/services', {
-            await this.httpWrapper.post('http://service-discovery:3001/services', {
+            await this.httpWrapper.post(`http://${process.env.SERVICE_DISCOVERY_ADDR}/services`, {
                 "service-type": ServiceType.GATEWAY,
                 "port": 3000,
             });
@@ -47,7 +46,7 @@ export class ServiceDiscoveryService {
             }
             // console.log(this.serviceMap);
         } catch (error) {
-            console.error('Error occurred while fetching services via grpc:', error);
+            console.error('Error occurred while fetching services via grpc.');
         }
     }
 }

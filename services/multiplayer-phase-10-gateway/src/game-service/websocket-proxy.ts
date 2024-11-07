@@ -8,7 +8,7 @@ import { ServiceInstanceLoaded } from 'src/service-classes/service_instance_load
 export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // private targetServiceClient: WebSocket;
-    private connectionPairMap: Map<string, {gameServiceInstance: ServiceInstanceLoaded, clients: Map<string, any>}> = new Map();
+    private rooms: Map<string, {gameServiceInstance: ServiceInstanceLoaded, clients: Map<string, any>}> = new Map();
 
     constructor(private readonly gameService: GameServiceService) {
     }
@@ -24,11 +24,14 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
         try {
             console.log('Client disconnected: ', client["id"]);
             const code = this.getRoomCode(client);
-            this.connectionPairMap.get(code).gameServiceInstance.decrementLoad();
-            this.connectionPairMap.get(code).clients.get(client["id"]).close();
-            this.connectionPairMap.get(code).clients.delete(client["id"]);
-            if (this.connectionPairMap.get(code).clients.size === 0) {
-                this.connectionPairMap.delete(code);
+            const room = this.rooms.get(code);
+            if (room !== undefined) {
+                room.gameServiceInstance.decrementLoad();
+                room.clients.get(client["id"]).close();
+                room.clients.delete(client["id"]);
+                if (room.clients.size === 0) {
+                    this.rooms.delete(code);
+                }
             }
         } finally {
 
@@ -43,32 +46,51 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const code = this.getRoomCode(client);
     
             var gameServiceInstance;
-    
-            if (this.connectionPairMap.has(code)) {
-                gameServiceInstance = this.connectionPairMap.get(code).gameServiceInstance;
+            var targetServiceSocket;
+
+            if (this.rooms.has(code)) {
+                gameServiceInstance = this.rooms.get(code).gameServiceInstance;
             } else {
-                gameServiceInstance = this.gameService.selectGameServiceInstance();
-                if (gameServiceInstance === null) {
+                const gameServiceInstances = this.gameService.sortedByLoadServiceInstances();
+                if (gameServiceInstances.length === 0) {
                     console.log("No game service instances available");
                     return;
                 }
-                this.connectionPairMap.set(code, {gameServiceInstance: gameServiceInstance, clients: new Map()});
+                const retries = 1;
+                for (let i = 0; i < retries; i++) {
+                    for (const serviceInstance of gameServiceInstances) {
+                        try {
+                            const url = serviceInstance.url;
+                            targetServiceSocket = io(`${url}/gamesession-ws`, {
+                                extraHeaders: {
+                                    Authorization: client["handshake"]["headers"]["authorization"]
+                                }
+                            });
+                            if (targetServiceSocket === undefined) {
+                                continue;
+                            }
+                            gameServiceInstance = serviceInstance;
+                            break;
+                        } catch {
+
+                        } finally {
+
+                        }
+                    }
+                    if (gameServiceInstance !== undefined) {
+                        break;
+                    } else {
+                        console.log("Multiple reroutes attempted for WebSocketConnection.");
+                    }
+                }
+                this.rooms.set(code, {gameServiceInstance: gameServiceInstance, clients: new Map()});
             }
             gameServiceInstance.incrementLoad();
+
+            this.rooms.get(code).clients.set(client["id"], targetServiceSocket);
     
-            const url = gameServiceInstance.url;
-            
-            const targetServiceSocket = io(`${url}/gamesession-ws`, {
-                extraHeaders: {
-                    Authorization: client["handshake"]["headers"]["authorization"]
-                }
-            }
-            );
-    
-            this.connectionPairMap.get(code).clients.set(client["id"], targetServiceSocket);
-    
-            targetServiceSocket.on('message', (response) => {
-                client.send(response);
+            targetServiceSocket.on('message', (message) => {
+                client.send(message);
             },);
         } finally {
 
@@ -79,7 +101,7 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     handleEvent(@MessageBody() data: string, @ConnectedSocket() client: any) {
         try {
             const code = this.getRoomCode(client);
-            this.connectionPairMap.get(code).clients.get(client["id"]).send(data);
+            this.rooms.get(code).clients.get(client["id"]).send(data);
         } finally {
             
         }

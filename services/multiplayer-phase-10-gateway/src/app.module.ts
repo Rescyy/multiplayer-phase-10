@@ -13,9 +13,13 @@ import { HttpWrapper } from './http/http.service';
 import { GameServiceController } from './game-service/game-service.controller';
 import { GameServiceService } from './game-service/game-service.service';
 import { ProxyGateway } from './game-service/websocket-proxy';
+import { BaseServiceController } from './base-service/base-service.controller';
+import { BaseServiceService } from './base-service/base-service.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({envFilePath: '.env'}),
     ClientsModule.register([
       {
         name: 'SERVICE_DISCOVERY_PACKAGE', // Name for this gRPC client
@@ -23,8 +27,7 @@ import { ProxyGateway } from './game-service/websocket-proxy';
         options: {
           package: 'servicediscovery', // The package name from your .proto file
           protoPath: join(__dirname, '../proto/servicediscovery.proto'), // Path to your .proto file
-          // url: 'localhost:5000', // gRPC server URL
-          url: 'service-discovery:5000', // gRPC server URL
+          url: `${process.env.SERVICE_DISCOVERY_ADDR_GRPC}`// gRPC server URL
         },
       },
     ]),

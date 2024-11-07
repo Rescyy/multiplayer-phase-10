@@ -105,6 +105,13 @@ services:
     - PYTHONUNBUFFERED=1
     # ports:
       # - "6789:6789"
+  
+  elk:
+    image: sebp/elk
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
 
 volumes:
   player-db-data:
