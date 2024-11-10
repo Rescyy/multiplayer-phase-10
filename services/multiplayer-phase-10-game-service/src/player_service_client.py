@@ -1,9 +1,11 @@
 import requests
-from consts import GATEWAY_HOST, GATEWAY_PORT
+import os
 
 class PlayerServiceClient:
+    gateway_addr = f"http://{os.getenv("GATEWAY_HOST")}:{os.getenv("GATEWAY_PORT")}"
+
     def authorizePlayer(self, authorization):
-        url = f"http://{GATEWAY_HOST}:{GATEWAY_PORT}/authorization"
+        url = f"{self.gateway_addr}/authorization"
         headers = {
             "Authorization": authorization
         }
@@ -16,6 +18,6 @@ class PlayerServiceClient:
             return "Failed to authorize player", response.status_code
     
     def getPlayerInfo(self, id):
-        url = f"http://{GATEWAY_HOST}:{GATEWAY_PORT}/players/{id}"
+        url = f"{self.gateway_addr}/players/{id}"
         response = requests.get(url, timeout=5)
         return response.json(), response.status_code

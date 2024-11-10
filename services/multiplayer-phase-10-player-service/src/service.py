@@ -1,6 +1,7 @@
 from database import ConflictException, DatabaseAPI, NotFoundException
 from cache import globalCache
 from flask import jsonify
+import elk
 
 class Response:
     @staticmethod
@@ -41,7 +42,8 @@ class PlayerService:
             return Response.not_found(e)
         except ConflictException as e:
             return Response.conflict(e)
-        except:
+        except Exception as e:
+            elk.log_service_error(e)
             return Response.server_error()
         
         return result, 200
@@ -51,13 +53,26 @@ class PlayerService:
             self.cache.set(key, result[0])
 
     def register_player(self, name: str, password: str):
-        result = self.handle_database_request(lambda: self.dapi.register_player(name, password))
-        if result[1] == 200:
+        result, status = self.handle_database_request(lambda: self.dapi.register_player(name, password))
+        if status == 200:
+            elk.log_register_event(name, result)
             self.cache.delete("all")
-        return result
+        else:
+            elk.log_failed_register_event(reason=result)
+        return result, status
     
     def login_player(self, name: str, password: str):
-        return self.handle_database_request(lambda: self.dapi.login_player(name, password))
+        result, status = self.handle_database_request(lambda: self.dapi.login_player(name, password))
+        if status == 200:
+            elk.log_login_event(name, result)
+        else:
+            try:
+                self.dapi.get_id_by_name(name)
+                elk.log_failed_login_event(reason="Invalid password")
+            except NotFoundException:
+                elk.log_failed_login_event(reason="Invalid username")
+
+        return result, status
 
     def get_id_by_name(self, name: str):
         result = self.cache.get(name)

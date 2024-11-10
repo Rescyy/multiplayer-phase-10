@@ -4,8 +4,10 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask import Flask, request, jsonify
 from game_service import GameService
 from subscribe import service_discovery_subscription
-from consts import THIS_SERVICE_PORT
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 app.config['JWT_SECRET_KEY'] = 'jwt_secret_key'
@@ -108,4 +110,4 @@ def handle_connect(*args):
 
 if __name__ == "__main__":
     service_discovery_subscription()
-    socketio.run(app, host="0.0.0.0", port=THIS_SERVICE_PORT, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=os.getenv("THIS_SERVICE_PORT"), allow_unsafe_werkzeug=True)

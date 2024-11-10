@@ -1,14 +1,12 @@
 import requests
-from consts import THIS_SERVICE_PORT, SERVICE_DISCOVERY_PORT, SERVICE_DISCOVERY_HOST
-
+import os
 import time
 
 def service_discovery_subscription():
-    # url = f'http://localhost:{SERVICE_DISCOVERY_PORT}/services'
-    url = f'http://{SERVICE_DISCOVERY_HOST}:{SERVICE_DISCOVERY_PORT}/services'
+    url = f'http://{os.getenv("SERVICE_DISCOVERY_HOST")}:{os.getenv("SERVICE_DISCOVERY_PORT")}/services'
     data = {
         "service-type": 1,
-        "port": THIS_SERVICE_PORT,
+        "port": os.getenv("THIS_SERVICE_PORT"),
         "healthcheck-params": {
             "period": 5,
         }

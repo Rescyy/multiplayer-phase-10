@@ -1,6 +1,7 @@
 import redis
 import json
 from datetime import date
+import os
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -23,18 +24,18 @@ def loads(s):
     return json.loads(s, object_hook=as_datetime)
 
 class Cache:
+
     def __init__(self):
         try:
-            # self.cache = redis.Redis(host='localhost', port=6379, db=0)
-            self.cache = redis.Redis(host='shared-cache', port=6379, db=0)
-            self._magicstring = "player-service:"
+            self.cache = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0)
             self.cache.ping()
+            self._magicstring = "player-service:"
             print("Connected to cache")
         except:
             self.cache = None
             print("Failed to connect to cache")
 
-    def get(self, key):
+    def get(self, key, logging_info=None):
         if self.cache is None:
             return None
         
@@ -50,7 +51,7 @@ class Cache:
         return value["value"]
 
     
-    def set(self, key, value, ex=3600):
+    def set(self, key, value, ex=3600, logging_info=None):
         if self.cache is None:
             return None
         
@@ -70,7 +71,7 @@ class Cache:
         return self.cache.set(self._magicstring + key, value, ex=ex)
 
 
-    def delete(self, key):
+    def delete(self, key, logging_info=None):
         if self.cache == None:
             return None
         return self.cache.delete(self._magicstring + key)

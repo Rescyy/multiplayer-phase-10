@@ -1,7 +1,7 @@
 import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from consts import GAME_DB_PORT, GAME_DB_HOST
+import os
 
 class NotFoundException(Exception):
     pass
@@ -11,19 +11,14 @@ class ConflictException(Exception):
 
 class DatabaseAPI:
     def __init__(self):
-        if not self.connect_to_db_as_deployed():
-            self.connect_to_db_as_local()
-        # if not self.connect_to_db_as_local():
-            # self.connect_to_db_as_deployed()
+        self.connect_to_db()
         
-    def connect_to_db_as_deployed(self):
+    def connect_to_db(self):
         self.dbname = "game-service-db"
         self.user = "game_db"
         self.password = "1234"
-        self.host = GAME_DB_HOST
-        # self.host = "game-db"
-        self.port = GAME_DB_PORT
-        # self.port = PLAYER_DB_PORT
+        self.host = os.getenv("GAME_DB_HOST")
+        self.port = os.getenv("GAME_DB_PORT")
         self.connection = None
         retries = 2
         for i in range(retries):
@@ -37,40 +32,9 @@ class DatabaseAPI:
                 print(e)
                 if i == retries - 1:
                     break
-            finally:
                 time.sleep(1)
         if self.connection == None:
-            print("Failed to connect to database as deployed")
-            return False
-        else:
-            dsn_params = self.connection.get_dsn_parameters()
-            db_host = dsn_params.get('host')
-            print(f"Connected to database {db_host}:{self.port}")
-            return True
-    
-    def connect_to_db_as_local(self):
-        self.dbname = "game-service-db"
-        self.user = "game_db"
-        self.password = "1234"
-        self.host = "localhost"
-        self.port = 5433
-        self.connection = None
-        retries = 2
-        for i in range(retries):
-            try:
-                print("Trying to connect to database as local")
-                self.connection = psycopg2.connect(dbname=self.dbname, user=self.user, password=self.password, host=self.host, port=self.port)
-                self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                self.cursor = self.connection.cursor()
-                break
-            except Exception as e:
-                if i == retries - 1:
-                    break
-                print(e)
-            finally:
-                time.sleep(1)
-        if self.connection == None:
-            print("Failed to connect to database as local")
+            print("Failed to connect to database")
             return False
         else:
             dsn_params = self.connection.get_dsn_parameters()

@@ -4,3 +4,4 @@ flask_jwt_extended==4.6.0
 requests==2.32.3
 redis==5.0.8
 flask_socketio==5.3.7
+python-dotenv==1.0.1
