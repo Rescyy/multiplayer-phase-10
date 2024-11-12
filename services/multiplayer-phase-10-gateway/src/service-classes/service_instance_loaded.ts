@@ -13,9 +13,7 @@ export class ServiceInstanceLoaded {
 
     async incrementLoad() {
         const release = await this.mutex.acquire();
-        if (this.load < this.maxLoad) {
-            this.load++;
-        }
+        this.load++;
         if (this.load > this.maxLoad * 0.5) {
             console.log(`ServiceInstance ${this.id} is at ${this.load / this.maxLoad * 100}% load`);
         }

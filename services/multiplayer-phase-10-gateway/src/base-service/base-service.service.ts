@@ -48,4 +48,8 @@ export class BaseServiceService {
         .filter(instance => !instance.isAtMaxLoad())
         .sort((a, b) => a.load - b.load);
     }
+
+    getServiceInstance(id: string): ServiceInstanceLoaded {
+        return this.serviceInstances.find(instance => instance.id === id);
+    }
 }

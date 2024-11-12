@@ -2,6 +2,9 @@ import requests
 import os
 import time
 
+myId = None
+myUrl = None
+
 def service_discovery_subscription():
     url = f'http://{os.getenv("SERVICE_DISCOVERY_HOST")}:{os.getenv("SERVICE_DISCOVERY_PORT")}/services'
     data = {
@@ -18,6 +21,9 @@ def service_discovery_subscription():
             response = requests.post(url, json=data, timeout=5)
             
             if response.status_code == 200:
+                global myId, myUrl
+                myId = response.json()["id"]
+                myUrl = response.json()["url"]
                 subscribed = True
                 break
             else:

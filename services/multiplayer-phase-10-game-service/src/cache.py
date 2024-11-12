@@ -34,9 +34,14 @@ class Cache:
             self.cache = None
             print("Failed to connect to cache")
 
+    def exists(self, key):
+        if self.cache is None:
+            return False
+        
+        return self.cache.exists(self._magicstring + key) == 1
+
     def get(self, key):
         if self.cache is None:
-            print("Cache instance is down")
             return None
         
         value = self.cache.get(self._magicstring + key)
@@ -51,9 +56,8 @@ class Cache:
         return value["value"]
 
     
-    def set(self, key, value, ex=3600):
+    def set(self, key, value, ex=None):
         if self.cache is None:
-            print("Cache instance is down")
             return None
         
         if isinstance(value, list):
@@ -70,7 +74,6 @@ class Cache:
             value = dumps({"type": "bool", "value": value})
 
         return self.cache.set(self._magicstring + key, value, ex=ex)
-
 
     def delete(self, key):
         if self.cache == None:

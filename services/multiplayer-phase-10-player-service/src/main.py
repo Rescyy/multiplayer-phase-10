@@ -114,6 +114,25 @@ def update_player_game(id):
 
     return handle_service_result(result, message_builder=lambda x: {'message': 'Player updated'})
 
+@app.route('/end-of-gamesession/prepare/<uuid>', methods=['DELETE'])
+def prepareEndOfGameSession(uuid):
+    playerIds = request.json.get('playerIds')
+    try:
+        service.prepareEndOfGameSession(playerIds, uuid)
+        return jsonify("OK"), 200
+    except:
+        return jsonify("Failed to prepare game session"), 500
+
+@app.route('/end-of-gamesession/commit', methods=["DELETE"])
+def commitEndOfGamesession(code):
+    service.commitEndOfGameSession(code)
+    return jsonify("OK"), 200
+
+@app.route('/end-of-gamesession/rollback', methods=["DELETE"])
+def rollbackEndOfGamesession(code):
+    service.rollbackEndOfGameSession(code)
+    return jsonify("OK"), 200
+
 if __name__ == "__main__":
     service_discovery_subscription()
     app.run(host="0.0.0.0", port=os.getenv("THIS_SERVICE_PORT"))

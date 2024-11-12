@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS players (
+    id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    creation_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    games_played int NOT NULL DEFAULT 0,
+    games_won int NOT NULL DEFAULT 0
+);

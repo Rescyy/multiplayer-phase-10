@@ -25,7 +25,7 @@ class DatabaseAPI:
         retries = 2
         for i in range(retries):
             try:
-                print("Trying to connect to database as deployed")
+                print("Trying to connect to database")
                 self.connection = psycopg2.connect(dbname=self.dbname, user=self.user, password=self.password, host=self.host, port=self.port)
                 self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 self.cursor = self.connection.cursor()
@@ -42,7 +42,19 @@ class DatabaseAPI:
             dsn_params = self.connection.get_dsn_parameters()
             db_host = dsn_params.get('host')
             print(f"Connected to database {db_host}:{self.port}")
+            self.create_table()
             return True
+
+    def create_table(self):
+        query_path = os.getenv("QUERY_PATH")
+
+        with open(f"{query_path}/create_table_players.sql", "r") as file:
+            query = file.read()
+            self.cursor.execute(query)
+
+        with open(f"{query_path}/create_table_player_gamesessions.sql", "r") as file:
+            query = file.read()
+            self.cursor.execute(query)
 
     def register_player(self, name: str, password: str):
 
@@ -153,4 +165,14 @@ class DatabaseAPI:
             raise e
         elk.log_database_query("update_player_game", (time.time() - start) * 1000)
 
-    
+    def prepareEndOfGameSession(self, queryValues):
+        _Xid = self.connection.xid(42, 'phase10', 'player')
+        self.connection.tpc_begin(_Xid)
+        self.cursor.executemany("INSERT INTO playerGameSessions VALUES (%s, %s)", queryValues)
+        self.connection.tpc_prepare()
+
+    def commitEndOfGameSession(self):
+        self.connection.tpc_commit(self.connection.xid(42, 'phase10', 'player'))
+
+    def rollbackEndOfGameSession(self):
+        self.connection.tpc_rollback(self.connection.xid(42, 'phase10', 'player'))

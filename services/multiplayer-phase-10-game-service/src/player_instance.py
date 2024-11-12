@@ -1,9 +1,4 @@
 class PlayerInstance:
-    def __init__(self, name: str, order: int):
+    def __init__(self, name: str, playerId: int|None):
         self.name = name
-        self.order = order
-        self.hand = []
-        self.phase = None
-        self.completed_phases = []
-        self.points = 0
-        self.skipped = False
+        self.playerId = playerId

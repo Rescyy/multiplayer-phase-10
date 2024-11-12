@@ -92,6 +92,8 @@ export class ProxyGateway implements OnGatewayConnection, OnGatewayDisconnect {
             targetServiceSocket.on('message', (message) => {
                 client.send(message);
             },);
+        } catch(error) {
+            console.log(error);
         } finally {
 
         }

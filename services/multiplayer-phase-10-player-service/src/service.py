@@ -105,3 +105,12 @@ class PlayerService:
             self.cache.delete(str(id))
         return result
     
+    def prepareEndOfGameSession(self, playerIds, gameSessionUUID):
+        queryValues = ((playerId, gameSessionUUID) for playerId in playerIds)
+        self.dapi.prepareEndOfGameSession(queryValues)
+        
+    def commitEndOfGameSession(self):
+        self.dapi.commitEndOfGameSession()
+
+    def rollbackEndOfGameSession(self):
+        self.dapi.rollbackEndOfGameSession()

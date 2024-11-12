@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS gameSessions (
+    id UUID NOT NULL PRIMARY KEY UNIQUE,
+    creation_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    code VARCHAR(6) NOT NULL
+);

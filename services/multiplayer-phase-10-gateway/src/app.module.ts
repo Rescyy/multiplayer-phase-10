@@ -16,6 +16,8 @@ import { ProxyGateway } from './game-service/websocket-proxy';
 import { BaseServiceController } from './base-service/base-service.controller';
 import { BaseServiceService } from './base-service/base-service.service';
 import { ConfigModule } from '@nestjs/config';
+import { TpccoordinatorController } from './tpccoordinator/tpccoordinator.controller';
+import { TpccoordinatorService } from './tpccoordinator/tpccoordinator.service';
 
 @Module({
   imports: [
@@ -33,7 +35,7 @@ import { ConfigModule } from '@nestjs/config';
     ]),
     HttpModule,
   ],
-  controllers: [PingController, ServiceDiscoveryController, PlayerServiceController, GameServiceController],
-  providers: [PingService, GrpcClientService, ServiceDiscoveryService, PlayerServiceService, HttpWrapper, GameServiceService, ProxyGateway],
+  controllers: [PingController, ServiceDiscoveryController, PlayerServiceController, GameServiceController, TpccoordinatorController],
+  providers: [PingService, GrpcClientService, ServiceDiscoveryService, PlayerServiceService, HttpWrapper, GameServiceService, ProxyGateway, TpccoordinatorService],
 })
 export class AppModule {}
