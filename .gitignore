@@ -1,3 +1,5 @@
 .DS_Store
 .env.production
 .env
+.yarn.lock
+*/__pycache__/*
