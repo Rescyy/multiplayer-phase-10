@@ -6,6 +6,7 @@ from game_service import GameService
 from subscribe import service_discovery_subscription
 import os
 from dotenv import load_dotenv
+import elk
 
 load_dotenv()
 app = Flask(__name__)
@@ -30,121 +31,138 @@ def ping():
 # { "code": <code> }
 @app.route('/gamesession', methods=['GET'])
 def getGamesession():
-    result = service.getGamesession()
-    return handle_service_result(result, message_builder=lambda x: {"code": x})
+    try:
+        result = service.getGamesession()
+        return handle_service_result(result, message_builder=lambda x: {"code": x})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route('/gamesession/guest/<code>', methods=['GET'])
 def connectGuestGamesession(code):
+    try:
+        result, username = service.requestGuestGameSession(code)
+        
+        if username is None:
+            return result
 
-    result, username = service.requestGuestGameSession(code)
-    
-    if username == None:
-        return result
-
-    access_token = create_access_token(identity={
-        "username": username,
-        "code": code
-    })
-
-    return handle_service_result(
-        result,
-        message_builder=
-        lambda x: {
-            "message": x, 
-            "token": access_token, 
-            "username": username
+        access_token = create_access_token(identity={
+            "username": username,
+            "code": code
         })
+
+        return handle_service_result(
+            result,
+            message_builder=lambda x: {
+                "message": x, 
+                "token": access_token, 
+                "username": username
+            })
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route('/gamesession/authorized/<code>', methods=['GET'])
 def connectAuthorizedGamesession(code):
-    
-    authorization = request.headers.get('Authorization')
+    try:
+        authorization = request.headers.get('Authorization')
 
-    result, playerInfo = service.requestAuthorizedGameSession(code, authorization)
+        result, playerInfo = service.requestAuthorizedGameSession(code, authorization)
 
-    if playerInfo == None:
-        return result
+        if playerInfo is None:
+            return result
 
-    username, id = playerInfo
+        username, id = playerInfo
 
-    access_token = create_access_token(identity={
-        "username": username,
-        "playerId": id,
-        "code": code,
-    })
-
-    return handle_service_result(
-        result, 
-        message_builder=
-        lambda x: {
-            "message": x, 
-            "token": access_token, 
-            "username": username
+        access_token = create_access_token(identity={
+            "username": username,
+            "playerId": id,
+            "code": code,
         })
 
-@app.route('/end-of-gamesession/<code>/prepare/<uuid>', methods=['DELETE'])
-def prepareEndOfGameSession(code, uuid):
+        return handle_service_result(
+            result, 
+            message_builder=lambda x: {
+                "message": x, 
+                "token": access_token, 
+                "username": username
+            })
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify({"error": "Internal Server Error"}), 500
+
+@app.route('/end-of-gamesession/<code>/<uuid>', methods=['PATCH'])
+def endOfGameSession(code, uuid):
     try:
-        service.prepareEndOfGameSession(code, uuid)
+        service.endOfGameSession(code, uuid)
         return jsonify("OK"), 200
-    except:
-        return jsonify("Failed to prepare game session"), 500
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify({"error": "Internal Server Error"}), 500
 
-@app.route('/end-of-gamesession/<code>/commit', methods=["DELETE"])
-def commitEndOfGamesession(code):
-    service.commitEndOfGameSession(code)
-    return jsonify("OK"), 200
-
-@app.route('/end-of-gamesession/<code>/rollback', methods=["DELETE"])
-def rollbackEndOfGamesession(code):
-    service.rollbackEndOfGameSession(code)
-    return jsonify("OK"), 200
+@app.route('/end-of-gamesession/<uuid>/rollback', methods=["PATCH"])
+def rollbackEndOfGamesession(uuid):
+    try:
+        service.rollbackEndOfGameSession(uuid)
+        return jsonify("OK"), 200
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify({"error": "Internal Server Error"}), 500
 
 @socketio.on('message', namespace='/gamesession-ws')
 @jwt_required()
 def handle_message(msg, *args):
+    try:
+        identity = get_jwt_identity()
+        username = identity.get('username')
+        code = identity.get('code')
+        msg = f"{code}: {username}: {msg}"
 
-    identity = get_jwt_identity()
-    username = identity.get('username')
-    code = identity.get('code')
-    msg = f"{code}: {username}: {msg}"
+        service.logMessage(code, username, msg)
 
-    service.logMessage(code, username, msg)
-
-    sio.emit("message", msg, broadcast=True, to=code)
+        sio.emit("message", msg, broadcast=True, to=code)
+    except Exception as e:
+        elk.log_service_error(e)
+        sio.emit("error", "Internal Server Error")
 
 @socketio.on('disconnect', namespace='/gamesession-ws')
 @jwt_required()
 def handle_disconnect(*args):
+    try:
+        identity = get_jwt_identity()
+        username = identity.get('username')
+        code = identity.get('code')
+        msg = f'{username} disconnected from room {code}'
 
-    identity = get_jwt_identity()
-    username = identity.get('username')
-    code = identity.get('code')
-    msg = f'{username} disconnected from room {code}'
+        service.disconnectPlayer(code, username)
 
-    service.disconnectPlayer(code, username)
+        sio.leave_room(code)
 
-    sio.leave_room(code)
-
-    sio.emit("message", msg, broadcast=True, to=code)
+        sio.emit("message", msg, broadcast=True, to=code)
+    except Exception as e:
+        elk.log_service_error(e)
+        sio.emit("error", "Internal Server Error")
 
 @socketio.on('connect', namespace='/gamesession-ws')
 @jwt_required()
 def handle_connect(*args):
+    try:
+        identity = get_jwt_identity()
+        username = identity.get('username')
+        code = identity.get('code')
+        playerId = identity.get('playerId')
 
-    identity = get_jwt_identity()
-    username = identity.get('username')
-    code = identity.get('code')
-    playerId = identity.get('playerId')
-
-    if service.sessionExists(code):
-        msg = f'{username} connected from room {code}'
-        service.connectPlayer(code, username, playerId)
-        sio.join_room(code)
-        sio.emit("message", msg, broadcast=True, to=code)
-    else:
-        sio.emit("error", "Invalid code")
-        sio.disconnect()
+        if service.sessionExists(code):
+            msg = f'{username} connected from room {code}'
+            service.connectPlayer(code, username, playerId)
+            sio.join_room(code)
+            sio.emit("message", msg, broadcast=True, to=code)
+        else:
+            sio.emit("error", "Invalid code")
+            sio.disconnect()
+    except Exception as e:
+        elk.log_service_error(e)
+        sio.emit("error", "Internal Server Error")
 
 if __name__ == "__main__":
     service_discovery_subscription()

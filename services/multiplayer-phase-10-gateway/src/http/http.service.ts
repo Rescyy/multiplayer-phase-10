@@ -40,4 +40,22 @@ export class HttpWrapper {
         return response;
         
     }
+
+    async patch(url: string, data?: any, headers?: any, abortController?: AbortController): Promise<AxiosResponse<any, any>> {
+        
+        const options = {};
+        if (headers) {
+            options['headers'] = headers;
+        }
+        if (abortController) {
+            options['signal'] = abortController.signal;
+        }
+        data = data ? data : {};
+        const response = await firstValueFrom(
+            this.httpService.patch(url, data, options).pipe(
+                timeout(5000),
+            )
+        );
+        return response;
+    }
 }

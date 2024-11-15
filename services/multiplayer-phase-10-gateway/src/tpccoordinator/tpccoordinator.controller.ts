@@ -2,26 +2,30 @@ import { Controller, Post, Req, Res } from '@nestjs/common';
 import { GameServiceService } from 'src/game-service/game-service.service';
 import { HttpWrapper } from 'src/http/http.service';
 import { PlayerServiceService } from 'src/player-service/player-service.service';
-import {Request, Response} from 'express';
-import { randomUUID } from 'crypto';
+import { Request, Response } from 'express';
+import { randomUUID, UUID } from 'crypto';
 
+type CallbackFunction = () => void;
 @Controller()
 export class TpccoordinatorController {
+
+
+    private readonly rollbackCallbacks = new Map<UUID, Array<CallbackFunction>>();
+
     constructor(private readonly httpWrapper: HttpWrapper, private readonly gameService: GameServiceService, private readonly playerService: PlayerServiceService) {
 
     }
 
     @Post('end-of-gamesession/:code')
-    startEndOfGamesessionTPC(@Req() req: Request, @Res() res: Response) {
+    async startEndOfGamesessionTPC(@Req() req: Request, @Res() res: Response) {
         const body = req.body;
-        const playerIds = body["playerIds"];
+        const playerIds = body["playerIds"] ? body["playerIds"] : [];
         const serviceId = body["serviceId"];
         const serviceUrl = body["serviceUrl"];
         const code = req.params.code;
+
         const gameServiceInstance = this.gameService.getServiceInstance(serviceId);
         const playerServiceInstance = this.playerService.selectServiceInstance();
-        
-        console.log("tpcoordinator.controller.ts::startEndOfGamesessionTPC() ", gameServiceInstance.url, serviceUrl);
 
         if (gameServiceInstance === null || playerServiceInstance === null) {
             console.log("No game service or player service instances available");
@@ -34,50 +38,90 @@ export class TpccoordinatorController {
             res.status(400);
             return;
         }
+        const transactionUUID = randomUUID();
 
-        const uuid = randomUUID();
+        this.rollbackCallbacks.set(transactionUUID, []);
 
-        setImmediate(async () => {
-            console.log('End of gamesession TPC started');
+        var shouldRollback = false;
+        
+        var gameServiceTransactionPromise = Promise.resolve();
+        var playerServiceTransactionPromise = Promise.resolve();
 
-            const gameServicePreparePromise = this.httpWrapper.delete(
-                gameServiceInstance.url + `/end-of-gamesession/${code}/prepare/${uuid}`
-            ).then(response => response.data);
-            const playerServicePreparePromise = this.httpWrapper.delete(
-                playerServiceInstance.url + `/end-of-gamesession/${code}/prepare/${uuid}`
-            ).then(response => response.data);
+        try {
 
-            const gameServicePrepareResponse = await gameServicePreparePromise;
-            const playerServicePrepareResponse = await playerServicePreparePromise;
-            console.log('End of gamesession TPC prepared');
+            gameServiceInstance.incrementLoad();
+            gameServiceTransactionPromise = this.httpWrapper.patch(
+                gameServiceInstance.url + `/end-of-gamesession/${code}/${transactionUUID}`,
+            )
+                .catch((error) => {
+                    console.log(error.message);
+                    console.log("Caught error, doing the rollback 1");
+                    if (!shouldRollback) {
+                        shouldRollback = true;
+                    }
+                    return { data: "ERR" };
+                })
+                .then((result) => {
+                    const data = result.data;
+                    if (data !== "OK") {
+                        return;
+                    }
+                    console.log("Game service transaction completed");
+                    this.rollbackCallbacks.get(transactionUUID).push(
+                        () => {
+                            this.httpWrapper.patch(
+                                gameServiceInstance.url + `/end-of-gamesession/${transactionUUID}/rollback`
+                            );
+                        }
+                    )
+                });
+        } catch (e) {
 
-            if (gameServicePrepareResponse == "OK" && playerServicePrepareResponse == "OK") {
-                const gameServiceCommitPromise = this.httpWrapper.delete(
-                    gameServiceInstance.url + `/end-of-gamesession/${code}/commit`
-                ).then(response => response.data);
-                const playerServiceCommitPromise = this.httpWrapper.delete(
-                    playerServiceInstance.url + `/end-of-gamesession/${code}/commit`
-                ).then(response => response.data);
+        } finally {
+            gameServiceInstance.decrementLoad();
+        }
 
-                const gameServiceCommitResponse = await gameServiceCommitPromise;
-                const playerServiceCommitResponse = await playerServiceCommitPromise;
-                console.log('End of gamesession TPC committed');
+        try{
+            playerServiceInstance.incrementLoad();
+            playerServiceTransactionPromise = this.httpWrapper.patch(
+                playerServiceInstance.url + `/end-of-gamesession/${transactionUUID}`,
+                { "playerIds": playerIds },
+            )
+                .catch((error) => {
+                    console.log(error.message);
+                    console.log("Caught error, doing the rollback 2");
+                    if (!shouldRollback) {
+                        shouldRollback = true;
+                    }
+                    return { data: "ERR" };
+                })
+                .then((result) => {
+                    const data = result.data;
+                    if (data !== "OK") {
+                        return;
+                    }
+                    console.log("Player service transaction completed");
+                    this.rollbackCallbacks.get(transactionUUID).push(
+                        () => {
+                            this.httpWrapper.patch(
+                                playerServiceInstance.url + `/end-of-gamesession/${transactionUUID}/rollback`
+                            );
+                        }
+                    )
+                });
+        } catch (e) {
 
-                if (gameServiceCommitResponse == "OK" && playerServiceCommitResponse == "OK") {
-                    console.log('End of gamesession TPC completed');
-                } else {
-                    console.log('End of gamesession TPC failed');
-                }
-            } else {
-                console.log('End of gamesession TPC failed');
-                const abortGameServicePromise = this.httpWrapper.delete(
-                    gameServiceInstance.url + `/end-of-gamesession/${code}/rollback`
-                ).then(response => response.data);
-                const abortPlayerServicePromise = this.httpWrapper.delete(
-                    playerServiceInstance.url + `/end-of-gamesession/${code}/rollback`
-                ).then(response => response.data);
-            }
-        });
+        } finally {
+            playerServiceInstance.decrementLoad();
+        }
+        
+        await Promise.all([gameServiceTransactionPromise, playerServiceTransactionPromise]);
+        
+        if (shouldRollback) {
+            this.rollbackCallbacks.get(transactionUUID).forEach((callback) => {
+                callback();
+            });
+        }
 
         return;
     }

@@ -2,8 +2,18 @@ import requests
 import os
 import time
 
-myId = None
-myUrl = None
+class Me:
+    def __init__(self):
+        self.id = None
+        self.url = None
+
+    def setIdAndUrl(self, id, url):
+        self.id = id
+        self.url = url
+        print(f"Service ID: {self.id}, Service URL: {self.url}")
+
+me = Me()
+
 
 def service_discovery_subscription():
     url = f'http://{os.getenv("SERVICE_DISCOVERY_HOST")}:{os.getenv("SERVICE_DISCOVERY_PORT")}/services'
@@ -21,9 +31,7 @@ def service_discovery_subscription():
             response = requests.post(url, json=data, timeout=5)
             
             if response.status_code == 200:
-                global myId, myUrl
-                myId = response.json()["id"]
-                myUrl = response.json()["url"]
+                me.setIdAndUrl(response.json()["id"], response.json()["url"])
                 subscribed = True
                 break
             else:

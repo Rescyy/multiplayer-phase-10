@@ -1,5 +1,8 @@
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class PlayerServiceClient:
     gateway_addr = f"http://{os.getenv("GATEWAY_HOST")}:{os.getenv("GATEWAY_PORT")}"

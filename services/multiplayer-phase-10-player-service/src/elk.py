@@ -230,7 +230,6 @@ def log_database_query(resource_name, latency_ms):
                     "resource_name": resource_name,
                     "latency_ms": latency_ms,
                     "status": "success",
-                    "error_details": None
                 }
             )
         except:
@@ -262,11 +261,66 @@ def log_failed_database_query(resource_name, latency_ms, exception: Exception):
             pass
     executor.submit(log)
 
-def log_resource_cache_hit():
+def log_cache_hit(latency_ms, resource_name):
     timestamp = timestampFormat()
     def log():
         try:
+            elkSession.post(
+                f"{elastic_url}/resource_usage_logs/_doc",
+                json={
+                    "timestamp": timestamp,
+                    "service_name": "player_service",
+                    "resource_type": "cache_hit",
+                    "resource_name": resource_name,
+                    "latency_ms": latency_ms,
+                    "status": "success",
+                }
+            )
             pass
+        except:
+            pass
+    executor.submit(log)
+
+def log_cache_miss(latency_ms, resource_name):
+    timestamp = timestampFormat()
+    def log():
+        try:
+            elkSession.post(
+                f"{elastic_url}/resource_usage_logs/_doc",
+                json={
+                    "timestamp": timestamp,
+                    "service_name": "player_service",
+                    "resource_type": "cache_miss",
+                    "resource_name": resource_name,
+                    "latency_ms": latency_ms,
+                    "status": "success",
+                }
+            )
+            pass
+        except:
+            pass
+    executor.submit(log)
+
+def log_failed_cache_operation(latency_ms, exception: Exception):
+    timestamp = timestampFormat()
+    def log():
+        try:
+            if isinstance(exception, Exception):
+                elkSession.post(
+                    f"{elastic_url}/resource_usage_logs/_doc",
+                    json={
+                        "timestamp": timestamp,
+                        "service_name": "player_service",
+                        "resource_type": "cache_operation",
+                        "latency_ms": latency_ms,
+                        "status": "failed",
+                        "error_details": {
+                            "error_type": type(exception).__name__,
+                            "error_message": str(exception),
+                            "stack_trace": exception.__traceback__
+                        }
+                    }
+                )
         except:
             pass
     executor.submit(log)

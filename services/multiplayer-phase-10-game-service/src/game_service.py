@@ -98,7 +98,7 @@ class GameService:
     def requestGuestGameSession(self, code):
         
         username = f"guest_{randrange(100_000,1_000_000)}"
-        while username in self.players:
+        while self.cache.exists(f"Player:{username}"):
             username = f"guest_{randrange(100_000,1_000_000)}"
 
         result = self.requestGameSession(code)
@@ -134,13 +134,13 @@ class GameService:
         gameSession: GameSession = self.gameSessions.get(code)
         if gameSession:
             gameSession.removePlayer(username)
-        self.cache.delete(f"Player:{username}", "magic")
+        self.cache.delete(f"Player:{username}")
 
         if gameSession.hasNoPlayers():
+            print("No players in game session")
             try:
                 self.gatewayClient.informEndOfGamesession(code, gameSession.allAuthorizedPlayersIds)
             except:
-                # remove without saving to database
                 self.gameSessions.pop(code)
 
     def logMessage(self, code, username, message):
@@ -148,17 +148,12 @@ class GameService:
         if gameSession:
             gameSession.logMessage(username, message)
 
-    def prepareEndOfGameSession(self, code, uuid):
+    def endOfGameSession(self, code, uuid):
         gameSession = self.gameSessions.get(code)
-        self.dapi.prepareEndOfGameSession(gameSession.toQuery(uuid), gameSession.getLogsForQuery(uuid))
+        self.dapi.endOfGameSession(gameSession.toQuery(uuid), gameSession.getLogsForQuery(uuid))
 
-    def commitEndOfGameSession(self, code):
-        self.dapi.commitEndOfGameSession()
-        if code in self.gameSessions:
-            self.gameSessions.pop(code)
-
-    def rollbackEndOfGameSession(self, code):
-        self.dapi.rollbackEndOfGameSession()
+    def rollbackEndOfGameSession(self, uuid):
+        self.dapi.rollbackEndOfGameSession(uuid)
 
     
     

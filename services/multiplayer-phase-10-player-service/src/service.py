@@ -75,7 +75,7 @@ class PlayerService:
         return result, status
 
     def get_id_by_name(self, name: str):
-        result = self.cache.get(name)
+        result = self.cache.get(name, "get_id_by_name")
         if result != None:
             return Response.ok(result)
         result = self.handle_database_request(lambda: self.dapi.get_id_by_name(name))
@@ -83,7 +83,7 @@ class PlayerService:
         return result
     
     def get_all_players(self):
-        result = self.cache.get("all")
+        result = self.cache.get("all", "get_all_players")
         if result != None:
             return Response.ok(result)
         result = self.handle_database_request(lambda: self.dapi.get_all_players())
@@ -91,7 +91,7 @@ class PlayerService:
         return result
     
     def get_player_by_id(self, id: int):
-        result = self.cache.get(str(id))
+        result = self.cache.get(str(id), "get_player_by_id")
         if result != None:
             return Response.ok(result)
         result = self.handle_database_request(lambda: self.dapi.get_player_by_id(id))
@@ -105,12 +105,9 @@ class PlayerService:
             self.cache.delete(str(id))
         return result
     
-    def prepareEndOfGameSession(self, playerIds, gameSessionUUID):
+    def endOfGameSession(self, playerIds, gameSessionUUID):
         queryValues = ((playerId, gameSessionUUID) for playerId in playerIds)
-        self.dapi.prepareEndOfGameSession(queryValues)
-        
-    def commitEndOfGameSession(self):
-        self.dapi.commitEndOfGameSession()
+        self.dapi.endOfGameSession(queryValues)
 
-    def rollbackEndOfGameSession(self):
-        self.dapi.rollbackEndOfGameSession()
+    def rollbackEndOfGameSession(self, gameSessionUUID):
+        self.dapi.rollbackEndOfGameSession(gameSessionUUID)

@@ -36,102 +36,137 @@ def hello_world():
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json.get('username')
-    password = request.json.get('password')
+    try:
+        username = request.json.get('username')
+        password = request.json.get('password')
 
-    # Register player
-    result = service.register_player(username, password)
+        # Register player
+        result = service.register_player(username, password)
 
-    return handle_service_result(result, message_builder=lambda x: {'message': 'Player registered'})
+        return handle_service_result(result, message_builder=lambda x: {'message': 'Player registered'})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to register player"), 500
 
 @app.route('/login', methods=['POST'])
 def login():
+    try:
+        username = request.json.get('username')
+        password = request.json.get('password')
 
-    username = request.json.get('username')
-    password = request.json.get('password')
+        # Generate JWT token
+        result = service.login_player(username, password)
+        acces_token = create_access_token(identity=username)
 
-    # Generate JWT token
-    result = service.login_player(username, password)
-    acces_token = create_access_token(identity=username)
-
-    return handle_service_result(result, message_builder=lambda x: {'id': x, 'token': acces_token})
+        return handle_service_result(result, message_builder=lambda x: {'id': x, 'token': acces_token})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to login"), 500
 
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
-    jti = jwt_payload["jti"]
-    token_in_redis = globalCache.get(jti)
-    return token_in_redis is not None
+    try:
+        jti = jwt_payload["jti"]
+        token_in_redis = globalCache.get(jti)
+        return token_in_redis is not None
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to check token"), 500
 
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
-    username = get_jwt_identity()
-    id = service.get_id_by_name(username)
-    elk.log_expired_authorization_token_used(jwt_payload["exp"], username, id)
+    try:
+        username = get_jwt_identity()
+        id = service.get_id_by_name(username)
+        elk.log_expired_authorization_token_used(jwt_payload["exp"], username, id)
+    except Exception as e:
+        elk.log_service_error(e)
 
 @app.route('/authorization', methods=['GET'])
 @jwt_required()
 def authorization():
-    username = get_jwt_identity()
-    result = service.get_id_by_name(username)
+    try:
+        username = get_jwt_identity()
+        result = service.get_id_by_name(username)
 
-    elk.log_authorization_token_used(username, result)
+        elk.log_authorization_token_used(username, result)
 
-    return handle_service_result(result, message_builder=lambda x: {'id': x})
+        return handle_service_result(result, message_builder=lambda x: {'id': x})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to authorize"), 500
 
 @app.route('/logout', methods=['DELETE'])
 @jwt_required()
 def logout():
-    jti = get_jwt()["jti"]
-    globalCache.set(jti, "", ex=ACCESS_EXPIRES)
+    try:
+        jti = get_jwt()["jti"]
+        globalCache.set(jti, "", ex=ACCESS_EXPIRES)
 
-    username = get_jwt_identity()
-    result = service.get_id_by_name(username)
+        username = get_jwt_identity()
+        result = service.get_id_by_name(username)
 
-    elk.log_logout_event(username, result)
-    return jsonify({'message': 'Logged out'}), 200
-
+        elk.log_logout_event(username, result)
+        return jsonify({'message': 'Logged out'}), 200
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to logout"), 500
 
 @app.route('/players', methods=['GET'])
 def get_players():
+    try:
+        result = service.get_all_players()
 
-    result = service.get_all_players()
-
-    return handle_service_result(result, message_builder=lambda x: {'players': x})
+        return handle_service_result(result, message_builder=lambda x: {'players': x})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to get players"), 500
 
 @app.route('/players/<int:id>', methods=['GET'])
 def get_player_by_id(id: int):
+    try:
+        result = service.get_player_by_id(id)
 
-    result = service.get_player_by_id(id)
-
-    return handle_service_result(result, message_builder=lambda x: {'player': x})
+        return handle_service_result(result, message_builder=lambda x: {'player': x})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to get player"), 500
 
 # Hidden from clients
 @app.route('/players/<int:id>', methods=['PUT'])
 def update_player_game(id):
-    won = request.json.get('won')
-
-    result = service.update_player_game(id, won)
-
-    return handle_service_result(result, message_builder=lambda x: {'message': 'Player updated'})
-
-@app.route('/end-of-gamesession/prepare/<uuid>', methods=['DELETE'])
-def prepareEndOfGameSession(uuid):
-    playerIds = request.json.get('playerIds')
     try:
-        service.prepareEndOfGameSession(playerIds, uuid)
+        won = request.json.get('won')
+
+        result = service.update_player_game(id, won)
+
+        return handle_service_result(result, message_builder=lambda x: {'message': 'Player updated'})
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to update player"), 500
+
+@app.route('/end-of-gamesession/<uuid>', methods=['PATCH'])
+def endOfGameSession(uuid):
+    playerIds = request.json.get('playerIds')
+    if not playerIds:
         return jsonify("OK"), 200
-    except:
+    try:
+        service.endOfGameSession(playerIds, uuid)
+        return jsonify("OK"), 200
+    except Exception as e:
+        elk.log_service_error(e)
         return jsonify("Failed to prepare game session"), 500
 
-@app.route('/end-of-gamesession/commit', methods=["DELETE"])
-def commitEndOfGamesession(code):
-    service.commitEndOfGameSession(code)
-    return jsonify("OK"), 200
 
-@app.route('/end-of-gamesession/rollback', methods=["DELETE"])
-def rollbackEndOfGamesession(code):
-    service.rollbackEndOfGameSession(code)
-    return jsonify("OK"), 200
+@app.route('/end-of-gamesession/<uuid>/rollback', methods=["PATCH"])
+def rollbackEndOfGamesession(uuid):
+    try:
+        service.rollbackEndOfGameSession(uuid)
+        return jsonify("OK"), 200
+    except Exception as e:
+        elk.log_service_error(e)
+        return jsonify("Failed to rollback game session"), 500
+
 
 if __name__ == "__main__":
     service_discovery_subscription()

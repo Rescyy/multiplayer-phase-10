@@ -2,6 +2,8 @@ import redis
 import json
 from datetime import date
 import os
+import elk
+import time
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -40,14 +42,17 @@ class Cache:
         
         return self.cache.exists(self._magicstring + key) == 1
 
-    def get(self, key):
+    def get(self, key, resource_name=None):
         if self.cache is None:
             return None
         
+        start = time.time()
         value = self.cache.get(self._magicstring + key)
         if value is None:
+            elk.log_cache_miss(time.time() - start, resource_name)
             return None
-        
+        elk.log_cache_hit(time.time() - start, resource_name)
+
         value = loads(value)
         data_type = value["type"]
         

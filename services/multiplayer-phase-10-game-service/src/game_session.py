@@ -5,7 +5,7 @@ from utils import getDateTime
 class GameSessionLog:
     def __init__(self, player: PlayerInstance, message: str, type: str):
         self.playerName = player.name
-        self.playerId = player.playerId
+        self.playerId = player.id
         self.message = message
         self.type = type
         self.dateTime = getDateTime()
@@ -83,5 +83,5 @@ class GameSession:
         return (uuid, self.dateTime, self.code)
 
     def getLogsForQuery(self, gameSessionId: int):
-        return (log.toQueryFormat(gameSessionId) for log in self.logs)
+        return [log.toQueryFormat(gameSessionId) for log in self.logs]
             

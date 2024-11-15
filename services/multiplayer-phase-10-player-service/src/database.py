@@ -42,19 +42,26 @@ class DatabaseAPI:
             dsn_params = self.connection.get_dsn_parameters()
             db_host = dsn_params.get('host')
             print(f"Connected to database {db_host}:{self.port}")
-            self.create_table()
+            self.create_tables_if_not_present()
             return True
 
-    def create_table(self):
+    def create_tables_if_not_present(self):
         query_path = os.getenv("QUERY_PATH")
 
-        with open(f"{query_path}/create_table_players.sql", "r") as file:
-            query = file.read()
-            self.cursor.execute(query)
+        start = time.time()
+        try:
+            with open(f"{query_path}/create_table_players.sql", "r") as file:
+                query = file.read()
+                self.cursor.execute(query)
 
-        with open(f"{query_path}/create_table_player_gamesessions.sql", "r") as file:
-            query = file.read()
-            self.cursor.execute(query)
+            with open(f"{query_path}/create_table_player_gamesessions.sql", "r") as file:
+                query = file.read()
+                self.cursor.execute(query)
+
+        except Exception as e:
+            elk.log_failed_database_query("create_tables_if_not_present", time.time() - start, e)
+        
+        elk.log_database_query("create_tables_if_not_present", time.time() - start)
 
     def register_player(self, name: str, password: str):
 
@@ -73,13 +80,14 @@ class DatabaseAPI:
 
         try:
             self.cursor.execute("INSERT INTO players (name, password) VALUES (%s, %s)", (name, password))
-            elk.log_database_query("register_player", (time.time() - start) * 1000)
         except psycopg2.errors.UniqueViolation as e:
             elk.log_database_query("register_player", (time.time() - start) * 1000)
             raise ConflictException("Username already exists")
         except Exception as e:
             elk.log_failed_database_query(("register_player", time.time() - start) * 1000, e)
             raise e
+
+        elk.log_database_query("register_player", (time.time() - start) * 1000)
         
 
     def login_player(self, name: str, password: str) -> int:
@@ -87,10 +95,11 @@ class DatabaseAPI:
 
         try:
             self.cursor.execute("SELECT id FROM players WHERE name=%s AND password=%s", (name, password))
-            elk.log_database_query("login_player", (time.time() - start) * 1000)
         except Exception as e:
             elk.log_failed_database_query(("login_player", time.time() - start) * 1000, e)
             raise e
+        
+        elk.log_database_query("login_player", (time.time() - start) * 1000)
         
         id = self.cursor.fetchone()
         if id == None:
@@ -102,10 +111,11 @@ class DatabaseAPI:
 
         try:
             self.cursor.execute("SELECT id FROM players WHERE name=%s", (name,))
-            elk.log_database_query("get_id_by_name", (time.time() - start) * 1000)
         except Exception as e:
             elk.log_failed_database_query(("get_id_by_name", time.time() - start) * 1000, e)
             raise e
+        
+        elk.log_database_query("get_id_by_name", (time.time() - start) * 1000)
         
         id = self.cursor.fetchone()
         if id == None:
@@ -117,10 +127,11 @@ class DatabaseAPI:
 
         try:
             self.cursor.execute("SELECT * FROM players")
-            elk.log_database_query("get_all_players", (time.time() - start) * 1000)
         except Exception as e:
             elk.log_failed_database_query(("get_all_players", time.time() - start) * 1000, e)
             raise e
+        
+        elk.log_database_query("get_all_players", (time.time() - start) * 1000)
         
         player_tuples = self.cursor.fetchall()
         return [self.map_player_to_object(player) for player in player_tuples]
@@ -130,10 +141,11 @@ class DatabaseAPI:
 
         try:
             self.cursor.execute("SELECT * FROM players WHERE id=%s", (id,))
-            elk.log_database_query("get_player_by_id", (time.time() - start) * 1000)
         except Exception as e:
             elk.log_failed_database_query(("get_player_by_id", time.time() - start) * 1000, e)
             raise e
+        
+        elk.log_database_query("get_player_by_id", (time.time() - start) * 1000)
 
         player_tuple = self.cursor.fetchone()
         if (player_tuple == None):
@@ -165,14 +177,8 @@ class DatabaseAPI:
             raise e
         elk.log_database_query("update_player_game", (time.time() - start) * 1000)
 
-    def prepareEndOfGameSession(self, queryValues):
-        _Xid = self.connection.xid(42, 'phase10', 'player')
-        self.connection.tpc_begin(_Xid)
+    def endOfGameSession(self, queryValues):
         self.cursor.executemany("INSERT INTO playerGameSessions VALUES (%s, %s)", queryValues)
-        self.connection.tpc_prepare()
 
-    def commitEndOfGameSession(self):
-        self.connection.tpc_commit(self.connection.xid(42, 'phase10', 'player'))
-
-    def rollbackEndOfGameSession(self):
-        self.connection.tpc_rollback(self.connection.xid(42, 'phase10', 'player'))
+    def rollbackEndOfGameSession(self, gameSessionUUID):
+        self.cursor.execute("DELETE FROM playerGameSessions VALUES where gameSessionId = %s", (gameSessionUUID,))
