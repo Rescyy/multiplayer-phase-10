@@ -1,7 +1,6 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom, Observable, retry, timeout } from 'rxjs';
-import { ServiceInstance } from 'src/service-classes/service_instance';
 import { ServiceRegistry } from 'src/service-classes/service_registry';
 
 interface ServiceDiscovery {

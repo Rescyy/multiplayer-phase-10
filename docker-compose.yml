@@ -1,5 +1,11 @@
 name: multiplayer-phase-10
 
+networks:
+  redis-cluster-net:
+    driver: bridge
+  services-net:
+    driver: bridge
+
 services:
   player-db:
     image: postgres:latest
@@ -13,6 +19,8 @@ services:
       - "5432:5432"
     volumes:
       - player-db-data:/var/lib/postgresql/data
+    networks:
+      - services-net
     environment:
       POSTGRES_DB: ${PLAYER_DB_NAME}
       POSTGRES_USER: ${PLAYER_DB_USER}
@@ -30,19 +38,94 @@ services:
       - "5433:5432"
     volumes:
       - game-db-data:/var/lib/postgresql/data
+    networks:
+      - services-net
     environment:
       POSTGRES_USER: ${GAME_DB_USER}
       POSTGRES_PASSWORD: ${GAME_DB_PASSWORD}
       POSTGRES_DB: ${GAME_DB_NAME}
 
-  shared-cache:
-    image: redis:latest
-    restart: no
-    ports:
-      - "6379:6379"
-    volumes:
-      - shared-cache-data:/data
+  # shared-cache:
+  #   image: redis:latest
+  #   restart: no
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - shared-cache-data:/data
   
+  redis-node-1:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-1:/data
+      - ./redis/7000.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-2:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-2:/data
+      - ./redis/7001.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-3:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-3:/data
+      - ./redis/7002.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-4:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-4:/data
+      - ./redis/7003.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-5:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-5:/data
+      - ./redis/7004.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-6:
+    image: redis:latest
+    restart: always
+    networks:
+      - redis-cluster-net
+    volumes:
+      - redis-volume-6:/data
+      - ./redis/7005.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-cluster:
+    image: redis:latest
+    networks:
+      - redis-cluster-net
+    command: redis-cli -p 6379 CLUSTER RESET && redis-cli -p 6379 --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 redis-node-4:6379 redis-node-5:6379 redis-node-6:6379 --cluster-replicas 1 --cluster-yes
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+
   gateway:
     build: ./services/multiplayer-phase-10-gateway
     depends_on:
@@ -52,9 +135,12 @@ services:
         condition: service_healthy
       game-service:
         condition: service_healthy
+    restart: on-failure
     ports:
       - "3000:3000"
       - "80:80"
+    networks:
+      - services-net
 
   service-discovery:
     build: ./services/multiplayer-phase-10-service-discovery
@@ -64,9 +150,12 @@ services:
       interval: 15s
       timeout: 3s
       retries: 5
+    restart: on-failure
     ports:
       - "3001:3001"
       - "5000:5000"
+    networks:
+      - services-net
 
   game-service:
     healthcheck:
@@ -81,11 +170,13 @@ services:
       service-discovery:
         condition: service_healthy
     build: ./services/multiplayer-phase-10-game-service
+    restart: on-failure
     scale: 2
     environment:
     - PYTHONUNBUFFERED=1
-    # ports:
-      # - "3030:3030"
+    networks:
+      - services-net
+      - redis-cluster-net
 
   player-service:
     healthcheck:
@@ -100,20 +191,30 @@ services:
       service-discovery:
         condition: service_healthy
     build: ./services/multiplayer-phase-10-player-service
+    restart: on-failure
     scale: 2
     environment:
     - PYTHONUNBUFFERED=1
-    # ports:
-      # - "6789:6789"
-  
+    networks:
+      - services-net
+      - redis-cluster-net
+
   elk:
     image: sebp/elk
     ports:
       - "5601:5601"
       - "9200:9200"
       - "5044:5044"
+    networks:
+      - services-net
 
 volumes:
   player-db-data:
   game-db-data:
-  shared-cache-data:
+  redis-volume-1:
+  redis-volume-2:
+  redis-volume-3:
+  redis-volume-4:
+  redis-volume-5:
+  redis-volume-6:
+  # shared-cache-data:

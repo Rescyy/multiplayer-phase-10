@@ -1,4 +1,5 @@
-import redis
+from redis.cluster import RedisCluster as Redis
+from redis.cluster import ClusterNode
 import json
 from datetime import date
 import os
@@ -27,14 +28,22 @@ def loads(s):
 
 class Cache:
     def __init__(self):
+        self._magicstring = "game-service:"
+        # try:
+        #     self.cache = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0)
+        #     self.cache.ping()
+        #     print("Connected to cache")
+        # except:
+        #     self.cache = None
+        #     print("Failed to connect to cache")
         try:
-            self.cache = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0)
-            self._magicstring = "game-service:"
+            self.cache = Redis(host="redis-node-1", port=6379)
             self.cache.ping()
-            print("Connected to cache")
-        except:
+            print(f"Connected to cache cluster.\nNodes: {self.cache.get_nodes()}")
+        except Exception as e:
             self.cache = None
             print("Failed to connect to cache")
+            print(e)
 
     def exists(self, key):
         if self.cache is None:
@@ -49,9 +58,9 @@ class Cache:
         start = time.time()
         value = self.cache.get(self._magicstring + key)
         if value is None:
-            elk.log_cache_miss(time.time() - start, resource_name)
+            elk.log_cache_miss((time.time() - start) * 1000, resource_name)
             return None
-        elk.log_cache_hit(time.time() - start, resource_name)
+        elk.log_cache_hit((time.time() - start) * 1000, resource_name)
 
         value = loads(value)
         data_type = value["type"]

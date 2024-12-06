@@ -57,10 +57,10 @@ class DatabaseAPI:
                 
             self.connection.commit()
         except Exception as e:
-            elk.log_failed_database_query("create_tables_if_not_present", time.time() - start, e)
+            elk.log_failed_database_query("create_tables_if_not_present", (time.time() - start) * 1000, e)
             raise e
         
-        elk.log_database_query("create_tables", time.time() - start)
+        elk.log_database_query("create_tables", (time.time() - start) * 1000)
 
     def endOfGameSession(self, gameSessionValues, gameLogsValues):
         start = time.time()
@@ -69,10 +69,10 @@ class DatabaseAPI:
             self.cursor.executemany("insert into gameLogs (gameSessionId, log_time, playerName, playerId, type, message) values (%s, %s, %s, %s, %s, %s)", gameLogsValues)
             self.connection.commit()
         except Exception as e:
-            elk.log_failed_database_query("endOfGameSession", time.time() - start, e)
+            elk.log_failed_database_query("endOfGameSession", (time.time() - start) * 1000, e)
             raise e
 
-        elk.log_database_query("endOfGameSession", time.time() - start)
+        elk.log_database_query("endOfGameSession", (time.time() - start) * 1000)
 
     def rollbackEndOfGameSession(self, gameSessionId):
         start = time.time()
@@ -81,8 +81,8 @@ class DatabaseAPI:
             self.cursor.execute("delete from gameLogs where gameSessionId = %s", (gameSessionId,))
             self.connection.commit()
         except Exception as e:
-            elk.log_failed_database_query("rollbackEndOfGameSession", time.time() - start, e)
+            elk.log_failed_database_query("rollbackEndOfGameSession", (time.time() - start) * 1000, e)
             raise e
 
-        elk.log_database_query("rollbackEndOfGameSession", time.time() - start)
+        elk.log_database_query("rollbackEndOfGameSession", (time.time() - start) * 1000)
     

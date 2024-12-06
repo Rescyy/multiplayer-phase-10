@@ -59,9 +59,9 @@ class DatabaseAPI:
                 self.cursor.execute(query)
 
         except Exception as e:
-            elk.log_failed_database_query("create_tables_if_not_present", time.time() - start, e)
+            elk.log_failed_database_query("create_tables_if_not_present", (time.time() - start) * 1000, e)
         
-        elk.log_database_query("create_tables_if_not_present", time.time() - start)
+        elk.log_database_query("create_tables_if_not_present", (time.time() - start) * 1000)
 
     def register_player(self, name: str, password: str):
 

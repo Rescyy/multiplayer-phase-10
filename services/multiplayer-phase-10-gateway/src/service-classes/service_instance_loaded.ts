@@ -11,6 +11,10 @@ export class ServiceInstanceLoaded {
         private readonly mutex: Mutex = new Mutex(),
     ) {};
 
+    toString(): string {
+        return `ServiceInstance(id=${this.id}, type=${this.type}, url=${this.url})`;
+    }
+
     async incrementLoad() {
         const release = await this.mutex.acquire();
         this.load++;

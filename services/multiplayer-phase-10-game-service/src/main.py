@@ -7,6 +7,7 @@ from subscribe import service_discovery_subscription
 import os
 from dotenv import load_dotenv
 import elk
+import random
 
 load_dotenv()
 app = Flask(__name__)
